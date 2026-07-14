@@ -6,6 +6,7 @@ Run: poe test-exercises
 
 import grpc
 import pytest
+from grpc import StatusCode
 
 pytest.importorskip(
     "exercises.generated.chat_pb2",
