@@ -6,7 +6,7 @@ Run: poe test-exercises
 
 import pytest
 
-from solutions.generated import chat_pb2
+from exercises.generated import chat_pb2
 
 
 def test_message_request_has_correct_fields():
