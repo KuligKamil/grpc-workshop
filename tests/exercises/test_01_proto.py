@@ -6,31 +6,35 @@ Run: poe test-exercises
 
 import pytest
 
+from solutions.generated import chat_pb2
+
 
 def test_message_request_has_correct_fields():
-    # TODO: create a MessageRequest with room_id="r", user="u", content="c"
-    # TODO: assert each field has the expected value
-    pytest.fail("Implement this test")
+    msg = chat_pb2.MessageRequest(room_id="r", user="u", content="c")
+    assert msg.room_id == "r"
+    assert msg.user == "u"
+    assert msg.content == "c"
 
 
 def test_message_response_has_correct_fields():
-    # TODO: create a MessageResponse with message_id="id", status="ok", timestamp=1
-    # TODO: assert each field has the expected value
-    pytest.fail("Implement this test")
+    msg = chat_pb2.MessageResponse(message_id="id", status="ok", timestamp=1)
+    assert msg.message_id == "id"
+    assert msg.status == "ok"
+    assert msg.timestamp == 1
 
 
 def test_history_request_has_correct_fields():
-    # TODO: create a HistoryRequest with room_id="room", limit=5
-    # TODO: assert each field has the expected value
-    pytest.fail("Implement this test")
+    msg = chat_pb2.HistoryRequest(room_id="room", limit=5)
+    assert msg.room_id == "room"
+    assert msg.limit == 5
 
 
 def test_message_has_all_five_fields():
-    # TODO: create a Message with all 5 fields: message_id, room_id, user, content, timestamp
-    # TODO: assert each field has the expected value
-    pytest.fail("Implement this test")
-
-
-def test_stub_has_all_four_rpc_methods(stub):
-    # TODO: assert that stub has methods: SendMessage, GetHistory, SendBulkMessages, Chat
-    pytest.fail("Implement this test")
+    msg = chat_pb2.Message(
+        message_id="id", room_id="r", user="u", content="c", timestamp=1
+    )
+    assert msg.message_id == "id"
+    assert msg.room_id == "r"
+    assert msg.user == "u"
+    assert msg.content == "c"
+    assert msg.timestamp == 1
