@@ -32,9 +32,12 @@ git clone https://github.com/KuligKamil/grpc-workshop/
 
 
 ```bash
+# Clone & enter workshop
+cd workshop
+
 # run test-exercises
-docker compose run --rm poe test-solutions
-docker compose run --rm poe test-exercises
+docker compose run --rm workshop poe test-exercises
+
 
 # Or create virtualenv and install deps and run
 uv sync
@@ -497,9 +500,11 @@ git clone https://github.com/KuligKamil/grpc-workshop/
 
 
 ```bash
+# Clone & enter workshop
+cd workshop
+
 # run test-exercises
-docker compose run --rm poe test-solutions
-docker compose run --rm poe test-exercises
+docker compose run --rm workshop poe test-exercises
 
 # Or create virtualenv and install deps and run
 uv sync
@@ -517,7 +522,7 @@ Install docker and docker-compose or install uv
 You have three ways to run exercises:
 1. **use docker** 
 ```bash
-docker compose run --rm <poe command>
+docker compose run --rm workshop <poe command>
 ```
 2. **use uv**
 ```bash
@@ -1556,7 +1561,7 @@ Open `exercises/07_final_chat_client/client.py` and implement these command func
 
 ## Run it
 
-Copy client.py from exercises/07_final_chat_client/ to exercises/
+Copy client.py from workshop/exercises/07_final_chat_client/ to workshop/exercises/
 
 ```bash
 # Terminal 1
