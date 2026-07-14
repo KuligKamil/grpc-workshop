@@ -4,6 +4,5 @@ __pycache__/
 *.pyo
 .pytest_cache/
 exercises/generated/*
-uv.lock
 *.egg-info/
 dist/
