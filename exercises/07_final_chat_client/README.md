@@ -74,7 +74,7 @@ Open `exercises/07_final_chat_client/client.py` and implement these command func
 
 ## Run it
 
-Copy client.py from workshop/exercises/07_final_chat_client/ to workshop/exercises/
+Copy client.py from exercises/07_final_chat_client/ to exercises/
 
 ```bash
 # Terminal 1

@@ -29,7 +29,6 @@ Define these four messages (field names and types are in the comments in the fil
 ## Verify
 
 ```bash
-# From the workshop/ directory:
 poe generate-exercises
 # No errors → exercises/generated/ updated
 ```
