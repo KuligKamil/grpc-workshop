@@ -21,6 +21,9 @@ discord: kamilkulig
 
 ---
 
+![alt text](assets/cthings.png)
+
+
 
 # Project Setup
 
