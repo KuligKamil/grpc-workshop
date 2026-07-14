@@ -1,0 +1,82 @@
+[project]
+name = "grpc-chat-workshop"
+version = "0.1.0"
+description = "gRPC Chat Service — EuroPython 2026 Workshop"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "grpcio>=1.64.0",
+  "grpcio-tools>=1.64.0",
+  "grpcio-reflection>=1.64.0",
+  "typer>=0.12.0",
+]
+
+[dependency-groups]
+dev = ["pytest>=8.2.0", "ruff>=0.4.0", "poethepoet>=0.27.0"]
+
+[tool.poe.tasks]
+server = "python -m exercises.main server"
+server-solutions = "python -m solutions.main server"
+test-exercises = { shell = "poe generate-exercises && trap 'rm -rf exercises/generated/*_pb2*.py exercises/generated/__pycache__' EXIT && pytest tests/exercises/ -v" }
+test-solutions = { shell = "poe generate-solutions && trap 'rm -rf solutions/generated/*_pb2*.py solutions/generated/__pycache__' EXIT && pytest tests/solutions/ -v" }
+lint = "ruff check ."
+fmt = "ruff format ."
+
+[tool.poe.tasks.client-send]
+cmd = "python -m exercises.main client send"
+help = "Send a single message (unary)"
+
+[tool.poe.tasks.client-send-solutions]
+cmd = "python -m solutions.main client send"
+help = "Send a single message (unary)"
+
+[tool.poe.tasks.client-history]
+cmd = "python -m exercises.main client history"
+help = "Fetch message history (server streaming)"
+
+[tool.poe.tasks.client-chat]
+cmd = "python -m exercises.main client chat"
+help = "Interactive bidirectional chat"
+
+[tool.poe.tasks.starter-04]
+cmd = "python exercises/04_unary_client/client_starter.py"
+help = "Run the Exercise 4 client starter"
+
+[tool.poe.tasks.starter-05]
+cmd = "python exercises/05_streaming/streaming_starter.py"
+help = "Run the Exercise 5 streaming starter"
+
+[tool.poe.tasks.starter-06]
+cmd = "python exercises/06_deadlines_cancellation_errors/deadlines_starter.py"
+help = "Run the Exercise 6 deadlines/cancellation starter"
+
+[tool.poe.tasks.generate-exercises]
+sequence = [
+  { cmd = "rm -f exercises/generated/*_pb2*.py exercises/generated/__pycache__/* 2>/dev/null || true" },
+  { cmd = "python -m grpc_tools.protoc -I exercises/01_protocol_buffers --python_out=exercises/generated --grpc_python_out=exercises/generated exercises/01_protocol_buffers/chat.proto" },
+  { cmd = "python -c \"import pathlib; f=pathlib.Path('exercises/generated/chat_pb2_grpc.py'); f.write_text(f.read_text().replace('import chat_pb2 as chat__pb2', 'from . import chat_pb2 as chat__pb2'))\"" },
+]
+
+[tool.poe.tasks.generate-solutions]
+sequence = [
+  { cmd = "rm -f solutions/generated/*_pb2*.py solutions/generated/__pycache__/* 2>/dev/null || true" },
+  { cmd = "python -m grpc_tools.protoc -I solutions/01_protocol_buffers --python_out=solutions/generated --grpc_python_out=solutions/generated solutions/01_protocol_buffers/chat.proto" },
+  { cmd = "python -c \"import pathlib; f=pathlib.Path('solutions/generated/chat_pb2_grpc.py'); f.write_text(f.read_text().replace('import chat_pb2 as chat__pb2', 'from . import chat_pb2 as chat__pb2'))\"" },
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests/exercises", "tests/solutions"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["exercises", "solutions"]

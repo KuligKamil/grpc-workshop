@@ -1,0 +1,41 @@
+services:
+  # ── Dev shell ────────────────────────────────────────────────────────────────
+  # Interactive environment with all tools (poe, pytest, ruff).
+  # Your local files are mounted, so edits are reflected instantly.
+  #
+  # Quick-start:
+  #   docker compose run --rm workshop bash          # open a shell
+  #   docker compose run --rm workshop poe test-exercises
+  #   docker compose run --rm workshop poe test-solutions
+  #   docker compose run --rm workshop poe lint
+  workshop:
+    build:
+      context: .
+      dockerfile: infrastructure/Dockerfile.dev
+    volumes:
+      - .:/workspace
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
+
+  # ── Solutions server ─────────────────────────────────────────────────────────
+  # Runs the reference (solutions) gRPC server.
+  # Used for manual exploration and smoke-testing the CLI.
+  #
+  #   docker compose up server
+  server:
+    build:
+      context: .
+      dockerfile: infrastructure/Dockerfile.dev
+    volumes:
+      - .:/workspace
+    working_dir: /workspace
+    command: ["poe", "server-solutions"]
+    ports:
+      - "50051:50051"   # gRPC
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import grpc; ch=grpc.insecure_channel('localhost:50051'); ch.close()"]
+      interval: 5s
+      timeout: 3s
+      retries: 10

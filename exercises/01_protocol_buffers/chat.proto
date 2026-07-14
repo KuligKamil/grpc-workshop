@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package chat;
+
+// Service definition — already provided for you.
+service ChatService {
+  rpc SendMessage(MessageRequest) returns (MessageResponse);
+  rpc GetHistory(HistoryRequest) returns (stream Message);
+  rpc SendBulkMessages(stream MessageRequest) returns (BulkResponse);
+  rpc Chat(stream MessageRequest) returns (stream Message);
+}
+
+// EXAMPLE — already filled in. Study the syntax, then define the rest below.
+message MessageRequest {
+  string room_id = 1;
+  string user = 2;
+  string content = 3;
+}
+
+// TODO: Define MessageResponse — returned after a successful send.
+// Fields:
+//   message_id (string) — unique ID assigned by the server
+//   status     (string) — "ok" or "error"
+//   timestamp  (int64)  — Unix timestamp
+message MessageResponse {
+  // TODO
+}
+
+// TODO: Define Message — the stored chat message (returned by GetHistory / Chat).
+// Fields:
+//   message_id (string)
+//   room_id    (string)
+//   user       (string)
+//   content    (string)
+//   timestamp  (int64)
+message Message {
+  // TODO
+}
+
+// TODO: Define HistoryRequest — request history for a room.
+// Fields:
+//   room_id (string)
+//   limit   (int32)  — max messages to return; 0 = all
+message HistoryRequest {
+  // TODO
+}
+
+// TODO: Define BulkResponse — returned after a bulk upload.
+// Fields:
+//   messages_sent   (int32)
+//   messages_failed (int32)
+message BulkResponse {
+  // TODO
+}
