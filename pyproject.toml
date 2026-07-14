@@ -16,18 +16,12 @@ dev = ["pytest>=8.2.0", "ruff>=0.4.0", "poethepoet>=0.27.0"]
 
 [tool.poe.tasks]
 server = "python -m exercises.main server"
-server-solutions = "python -m solutions.main server"
 test-exercises = { shell = "poe generate-exercises && trap 'rm -rf exercises/generated/*_pb2*.py exercises/generated/__pycache__' EXIT && pytest tests/exercises/ -v" }
-test-solutions = { shell = "poe generate-solutions && trap 'rm -rf solutions/generated/*_pb2*.py solutions/generated/__pycache__' EXIT && pytest tests/solutions/ -v" }
 lint = "ruff check ."
 fmt = "ruff format ."
 
 [tool.poe.tasks.client-send]
 cmd = "python -m exercises.main client send"
-help = "Send a single message (unary)"
-
-[tool.poe.tasks.client-send-solutions]
-cmd = "python -m solutions.main client send"
 help = "Send a single message (unary)"
 
 [tool.poe.tasks.client-history]
@@ -55,13 +49,6 @@ sequence = [
   { cmd = "rm -f exercises/generated/*_pb2*.py exercises/generated/__pycache__/* 2>/dev/null || true" },
   { cmd = "python -m grpc_tools.protoc -I exercises/01_protocol_buffers --python_out=exercises/generated --grpc_python_out=exercises/generated exercises/01_protocol_buffers/chat.proto" },
   { cmd = "python -c \"import pathlib; f=pathlib.Path('exercises/generated/chat_pb2_grpc.py'); f.write_text(f.read_text().replace('import chat_pb2 as chat__pb2', 'from . import chat_pb2 as chat__pb2'))\"" },
-]
-
-[tool.poe.tasks.generate-solutions]
-sequence = [
-  { cmd = "rm -f solutions/generated/*_pb2*.py solutions/generated/__pycache__/* 2>/dev/null || true" },
-  { cmd = "python -m grpc_tools.protoc -I solutions/01_protocol_buffers --python_out=solutions/generated --grpc_python_out=solutions/generated solutions/01_protocol_buffers/chat.proto" },
-  { cmd = "python -c \"import pathlib; f=pathlib.Path('solutions/generated/chat_pb2_grpc.py'); f.write_text(f.read_text().replace('import chat_pb2 as chat__pb2', 'from . import chat_pb2 as chat__pb2'))\"" },
 ]
 
 [tool.ruff]
