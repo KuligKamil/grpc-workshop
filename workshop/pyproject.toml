@@ -15,10 +15,16 @@ dependencies = [
 dev = ["pytest>=8.2.0", "ruff>=0.4.0", "poethepoet>=0.27.0"]
 
 [tool.poe.tasks]
-server = "python -m exercises.main server"
-test-exercises = { shell = "poe generate-exercises && trap 'rm -rf exercises/generated/*_pb2*.py exercises/generated/__pycache__' EXIT && pytest tests/exercises/ -v" }
+test-exercises = { shell = "poe generate-exercises && pytest tests/exercises/ -v" }
 lint = "ruff check ."
 fmt = "ruff format ."
+
+[tool.poe.tasks.server]
+sequence = [
+  { shell = "test -f exercises/generated/chat_pb2_grpc.py || poe generate-exercises" },
+  { cmd = "python -m exercises.main server" },
+]
+help = "Start the gRPC chat server (generating stubs first if missing)"
 
 [tool.poe.tasks.client-send]
 cmd = "python -m exercises.main client send"
@@ -46,8 +52,8 @@ help = "Run the Exercise 6 deadlines/cancellation starter"
 
 [tool.poe.tasks.generate-exercises]
 sequence = [
-  { cmd = "rm -f exercises/generated/*_pb2*.py exercises/generated/__pycache__/* 2>/dev/null || true" },
-  { cmd = "python -m grpc_tools.protoc -I exercises/01_protocol_buffers --python_out=exercises/generated --grpc_python_out=exercises/generated exercises/01_protocol_buffers/chat.proto" },
+  { shell = "rm -f exercises/generated/*_pb2*.py exercises/generated/*.pyi exercises/generated/__pycache__/* 2>/dev/null || true" },
+  { cmd = "python -m grpc_tools.protoc -I exercises/01_protocol_buffers --python_out=exercises/generated --pyi_out=exercises/generated --grpc_python_out=exercises/generated exercises/01_protocol_buffers/chat.proto" },
   { cmd = "python -c \"import pathlib; f=pathlib.Path('exercises/generated/chat_pb2_grpc.py'); f.write_text(f.read_text().replace('import chat_pb2 as chat__pb2', 'from . import chat_pb2 as chat__pb2'))\"" },
 ]
 
