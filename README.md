@@ -190,8 +190,9 @@ LIVE CODING.
 
 * FOR KAMIL
   * Light Mode ON 
-  * TOO FAST ( do BOOOO )
+  * Slow down
   * One file on the screen
+  * Check if people see the code on the screen
 * Not code just watch
 * After live code every person can run it
 
