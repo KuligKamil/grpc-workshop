@@ -620,11 +620,12 @@ poe generate-exercises
 ## ✅ Micro-check
 
 After `poe generate-exercises` you should see **no errors** on the terminal and
-two new files in `exercises/generated/`:
+three new files in `exercises/generated/`:
 
 ```
 exercises/generated/chat_pb2.py
 exercises/generated/chat_pb2_grpc.py
+exercises/generated/chat_pb2.pyi
 ```
 
 If `protoc` prints `Field number 0 is illegal`, a field tag is missing.
@@ -645,6 +646,8 @@ syntax = "proto3";
 
 package chat;
 
+import "google/protobuf/timestamp.proto";
+
 service ChatService {
   rpc SendMessage(MessageRequest) returns (MessageResponse);
   rpc GetHistory(HistoryRequest) returns (stream Message);
@@ -661,7 +664,7 @@ message MessageRequest {
 message MessageResponse {
   string message_id = 1;
   string status = 2;
-  int64 timestamp = 3;
+  google.protobuf.Timestamp timestamp = 3;
 }
 
 message HistoryRequest {
@@ -679,7 +682,7 @@ message Message {
   string room_id = 2;
   string user = 3;
   string content = 4;
-  int64 timestamp = 5;
+  google.protobuf.Timestamp timestamp = 5;
 }
 
 ```
@@ -768,11 +771,11 @@ that's the expected placeholder response from gRPC.
 
 """Solution — Exercise 02: ChatServicer with four method stubs."""
 
-import time
 import uuid
 from concurrent import futures
 
 import grpc
+from google.protobuf.timestamp_pb2 import Timestamp
 
 from exercises.generated import chat_pb2, chat_pb2_grpc
 
@@ -780,12 +783,14 @@ _store: dict[str, list[chat_pb2.Message]] = {}
 
 
 def _make_message(request: chat_pb2.MessageRequest) -> chat_pb2.Message:
+    timestamp = Timestamp()
+    timestamp.GetCurrentTime()
     msg = chat_pb2.Message(
         message_id=str(uuid.uuid4()),
         room_id=request.room_id,
         user=request.user,
         content=request.content,
-        timestamp=int(time.time()),
+        timestamp=timestamp,
     )
     _store.setdefault(request.room_id, []).append(msg)
     return msg
@@ -935,11 +940,11 @@ still returning `pass` — make sure the method is uncommented in `server.py`.
 
 """Solution — Exercise 03: SendMessage implemented."""
 
-import time
 import uuid
 from concurrent import futures
 
 import grpc
+from google.protobuf.timestamp_pb2 import Timestamp
 from grpc import StatusCode
 
 from exercises.generated import chat_pb2, chat_pb2_grpc
@@ -948,12 +953,14 @@ _store: dict[str, list[chat_pb2.Message]] = {}
 
 
 def _make_message(request: chat_pb2.MessageRequest) -> chat_pb2.Message:
+    timestamp = Timestamp()
+    timestamp.GetCurrentTime()
     msg = chat_pb2.Message(
         message_id=str(uuid.uuid4()),
         room_id=request.room_id,
         user=request.user,
         content=request.content,
-        timestamp=int(time.time()),
+        timestamp=timestamp,
     )
     _store.setdefault(request.room_id, []).append(msg)
     return msg
@@ -1367,7 +1374,7 @@ def demo_bidirectional(stub: chat_pb2_grpc.ChatServiceStub) -> None:
             elapsed = time.monotonic() - start
             print(
                 f"  ← [{reply.user}] {reply.content} "
-                f"(server_ts={reply.timestamp}, t+{elapsed:.2f}s)"
+                f"(server_ts={reply.timestamp.seconds}, t+{elapsed:.2f}s)"
             )
     except grpc.RpcError as error:
         print(f"  stream finished with {error.code().name}: {error.details()}")

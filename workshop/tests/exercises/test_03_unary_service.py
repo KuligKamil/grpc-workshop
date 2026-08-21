@@ -34,7 +34,7 @@ def test_send_message_returns_ok_status(stub):
 
 def test_send_message_returns_positive_timestamp(stub):
     resp = _send(stub)
-    assert resp.timestamp > 0
+    assert resp.timestamp.seconds > 0
 
 
 def test_send_message_generates_unique_ids(stub):

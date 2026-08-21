@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package chat;
 
+import "google/protobuf/timestamp.proto";
+
 // Service definition — already provided for you.
 service ChatService {
   rpc SendMessage(MessageRequest) returns (MessageResponse);
@@ -19,9 +21,9 @@ message MessageRequest {
 
 // TODO: Define MessageResponse — returned after a successful send.
 // Fields:
-//   message_id (string) — unique ID assigned by the server
-//   status     (string) — "ok" or "error"
-//   timestamp  (int64)  — Unix timestamp
+//   message_id (string)                     — unique ID assigned by the server
+//   status     (string)                     — "ok" or "error"
+//   timestamp  (google.protobuf.Timestamp)  — when the message was stored
 message MessageResponse {
   // TODO
 }
@@ -32,7 +34,7 @@ message MessageResponse {
 //   room_id    (string)
 //   user       (string)
 //   content    (string)
-//   timestamp  (int64)
+//   timestamp  (google.protobuf.Timestamp)
 message Message {
   // TODO
 }

@@ -1,8 +1,8 @@
-import time
 import uuid
 from concurrent import futures
 
 import grpc
+from google.protobuf.timestamp_pb2 import Timestamp
 from grpc import StatusCode
 
 from exercises.generated import chat_pb2, chat_pb2_grpc
@@ -12,12 +12,14 @@ _store: dict[str, list[chat_pb2.Message]] = {}
 
 
 def _make_message(request: chat_pb2.MessageRequest) -> chat_pb2.Message:
+    timestamp = Timestamp()
+    timestamp.GetCurrentTime()
     msg = chat_pb2.Message(
         message_id=str(uuid.uuid4()),
         room_id=request.room_id,
         user=request.user,
         content=request.content,
-        timestamp=int(time.time()),
+        timestamp=timestamp,
     )
     _store.setdefault(request.room_id, []).append(msg)
     return msg
