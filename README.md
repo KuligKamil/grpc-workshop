@@ -205,10 +205,12 @@ cd grpc_test
 uv init
 ```
 
-Create project and install the grpcio and grpcio-tools package:
+Create project and install the grpcio and grpcio-tools package (plus mypy-protobuf and
+types-grpcio, for typed stubs and IDE autocompletion):
 
 ```bash
 uv add grpcio grpcio-tools
+uv add --dev mypy-protobuf types-grpcio
 source .venv/bin/activate
 ```
 
@@ -246,7 +248,7 @@ service Hello {
 ```
 
 ```bash
-python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. --pyi_out=. contract.proto
+python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. --mypy_out=. --mypy_grpc_out=. contract.proto
 ``` 
 
 -I / --proto_path - basic catalog for imports in .proto files
@@ -255,15 +257,34 @@ python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. --pyi_out=. 
 
 --grpc_python_out - where to generate _pb2_grpc.py
 
---pyi_out - typing stubs (helps with autocompletion in IDE)
+--mypy_out - type stubs for messages (contract_pb2.pyi)
 
-After running the command, you will get three files:
+--mypy_grpc_out - type stubs for the service/stub code (contract_pb2_grpc.pyi)
+
+> 💡 **Why `--mypy_out` / `--mypy_grpc_out` instead of the built-in `--pyi_out`?**
+> `--pyi_out` (built into `grpcio-tools`) only covers messages — `contract_pb2_grpc.py`
+> (the Stub/Servicer classes) stays untyped, so `stub.SendHello(...)` shows up as `Any`.
+> `--mypy_out` / `--mypy_grpc_out` come from the [mypy-protobuf](https://github.com/nipunn1313/mypy-protobuf)
+> plugin: `--mypy_out` generates the same kind of message stubs as `--pyi_out` but with richer
+> types (e.g. `oneof`, `map<>`, `enum`), and `--mypy_grpc_out` additionally covers the
+> Stub/Servicer code that `--pyi_out` skips entirely. They're not "better" at the exact same
+> job — `--pyi_out` simply doesn't generate stubs for half the file.
+>
+> `types-grpcio` isn't part of this `protoc` command — it's a separate dev dependency that
+> types the `grpc` package itself (channels, servers, contexts), so mypy/your IDE understands
+> `grpc.insecure_channel(...)`, `grpc.server(...)`, etc. as well as the generated code above.
+> It comes from [typeshed](https://github.com/python/typeshed/tree/main/stubs/grpcio) — the
+> older `grpc-stubs` package was archived in 2025 and its maintenance moved there.
+
+After running the command, you will get four files:
 
 * contract_pb2.py — contains classes for messages defined in your .proto file
 
 * contract_pb2_grpc.py — contains classes for gRPC service
 
-* contract_pb2.pyi - type stubs 
+* contract_pb2.pyi — type stubs for messages
+
+* contract_pb2_grpc.pyi — type stubs for the service/stub code
 
 In contract_pb2_grpc.py you will find:
 
@@ -545,6 +566,22 @@ uv sync
 source .venv/bin/activate
 <poe command>
 ```
+
+## Dev dependencies
+
+The `dev` dependency group (installed automatically by `uv sync`) includes two
+extra packages to improve editor/type-checker support for the generated gRPC code:
+
+- **[mypy-protobuf](https://github.com/nipunn1313/mypy-protobuf)** — generates `.pyi` type stub files
+  alongside the `_pb2.py` / `_pb2_grpc.py` files produced by `grpc_tools.protoc`, so message fields
+  get proper type hints and autocompletion instead of showing up as `Any`.
+- **[types-grpcio](https://github.com/python/typeshed/tree/main/stubs/grpcio)** — type stubs for
+  the `grpc` package itself (channels, servers, stubs, contexts), so mypy/IDEs understand the
+  core gRPC API, not just the generated message/service code. Maintained by
+  [typeshed](https://github.com/python/typeshed); the older `grpc-stubs` package was archived
+  in 2025 in favor of this.
+
+Neither is required to run the exercises — they only improve static typing and IDE support.
 # Exercise 1: Proto Messages
 
 ## Goal
