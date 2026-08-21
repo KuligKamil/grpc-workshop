@@ -186,8 +186,18 @@ sequenceDiagram
 
 ---
 
-<details>
-  <summary>LIVE CODING.</summary>Create new fresh project:
+# LIVE CODING. 
+
+* FOR KAMIL
+  * Light Mode ON 
+  * Slow down
+  * One file on the screen
+  * Check if people see the code on the screen
+* Not code just watch
+* After live code every person can run it
+
+
+Create new fresh project:
 
 ```bash
 mkdir grpc_test
@@ -397,10 +407,7 @@ Cześć Kamil!
 [server] 07:40:14 sending 8
 ```
 
-
-</details>
-
-
+---
 
 # Protocol Buffers — The Language of gRPC
 
