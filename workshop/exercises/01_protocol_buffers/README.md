@@ -37,12 +37,13 @@ poe generate-exercises
 ## ✅ Micro-check
 
 After `poe generate-exercises` you should see **no errors** on the terminal and
-three new files in `exercises/generated/`:
+four new files in `exercises/generated/`:
 
 ```
 exercises/generated/chat_pb2.py
 exercises/generated/chat_pb2_grpc.py
 exercises/generated/chat_pb2.pyi
+exercises/generated/chat_pb2_grpc.pyi
 ```
 
 If `protoc` prints `Field number 0 is illegal`, a field tag is missing.

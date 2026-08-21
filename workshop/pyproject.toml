@@ -59,7 +59,7 @@ help = "Run the Exercise 6 deadlines/cancellation starter"
 [tool.poe.tasks.generate-exercises]
 sequence = [
   { shell = "rm -f exercises/generated/*_pb2*.py exercises/generated/*.pyi exercises/generated/__pycache__/* 2>/dev/null || true" },
-  { cmd = "python -m grpc_tools.protoc -I exercises/01_protocol_buffers --python_out=exercises/generated --pyi_out=exercises/generated --grpc_python_out=exercises/generated exercises/01_protocol_buffers/chat.proto" },
+  { cmd = "python -m grpc_tools.protoc -I exercises/01_protocol_buffers --python_out=exercises/generated --mypy_out=exercises/generated --mypy_grpc_out=exercises/generated --grpc_python_out=exercises/generated exercises/01_protocol_buffers/chat.proto" },
   { cmd = "python -c \"import pathlib; f=pathlib.Path('exercises/generated/chat_pb2_grpc.py'); f.write_text(f.read_text().replace('import chat_pb2 as chat__pb2', 'from . import chat_pb2 as chat__pb2'))\"" },
 ]
 
