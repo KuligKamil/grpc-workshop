@@ -89,6 +89,51 @@ poe test-solutions
 
 ---
 
+# gRPC Status Codes vs HTTP Status Codes
+
+gRPC doesn't reuse HTTP status codes — it has its **own set of 17 status codes**,
+always returned in the `grpc-status` trailer (not the HTTP status line, which stays `200 OK`
+even on gRPC errors when running over HTTP/2).
+
+| gRPC Status Code | Closest REST/HTTP equivalent | When it happens |
+|---|---|---|
+| `OK` (0) | `200 OK` | Success |
+| `CANCELLED` (1) | `499 Client Closed Request` | Caller cancelled the call |
+| `INVALID_ARGUMENT` (3) | `400 Bad Request` | Client sent malformed/invalid data |
+| `DEADLINE_EXCEEDED` (4) | `504 Gateway Timeout` | Call didn't finish before the deadline |
+| `NOT_FOUND` (5) | `404 Not Found` | Entity doesn't exist |
+| `ALREADY_EXISTS` (6) | `409 Conflict` | Entity already exists |
+| `PERMISSION_DENIED` (7) | `403 Forbidden` | Caller lacks permission |
+| `UNAUTHENTICATED` (16) | `401 Unauthorized` | Missing/invalid credentials |
+| `RESOURCE_EXHAUSTED` (8) | `429 Too Many Requests` | Rate limit / quota exceeded |
+| `FAILED_PRECONDITION` (9) | `400 Bad Request` | System not in required state (e.g. deleting non-empty dir) |
+| `UNIMPLEMENTED` (12) | `501 Not Implemented` | Method not implemented on the server |
+| `UNAVAILABLE` (14) | `503 Service Unavailable` | Server down / transient network failure — safe to retry |
+| `INTERNAL` (13) | `500 Internal Server Error` | Internal server bug |
+| `UNKNOWN` (2) | `500 Internal Server Error` | Error with no mapped status (e.g. non-`RpcError` raised) |
+
+> 💡 gRPC codes are more **granular** than HTTP's ~7 commonly-used error codes, and every one
+> of them carries a machine-readable meaning about **retryability**
+> (e.g. `UNAVAILABLE`/`DEADLINE_EXCEEDED` → safe to retry, `INVALID_ARGUMENT`/`NOT_FOUND` → don't retry).
+> REST APIs usually layer this convention on top of HTTP codes themselves (via body payloads);
+> gRPC bakes it into the protocol.
+
+Full list: [grpc.io/docs/guides/status-codes](https://grpc.io/docs/guides/status-codes/)
+
+```python
+# Server side — raising a status
+context.abort(grpc.StatusCode.INVALID_ARGUMENT, "Message content cannot be empty")
+
+# Client side — catching it
+try:
+    stub.SendMessage(request)
+except grpc.RpcError as e:
+    print(e.code())     # StatusCode.INVALID_ARGUMENT
+    print(e.details())  # "Message content cannot be empty"
+```
+
+---
+
 # gRPC vs REST performance benchmark with k6
 
 [https://github.com/Ag0r9/k6-testing/](https://github.com/Ag0r9/k6-testing/)
