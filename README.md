@@ -257,13 +257,20 @@ python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. --mypy_out=.
 
 --grpc_python_out - where to generate _pb2_grpc.py
 
---mypy_out - type stubs for messages (contract_pb2.pyi), powered by mypy-protobuf — richer
-than the built-in `--pyi_out` (proper field types instead of `Any`, better IDE autocompletion)
+--mypy_out - type stubs for messages (contract_pb2.pyi)
 
---mypy_grpc_out - type stubs for the service/stub code (contract_pb2_grpc.pyi), also from
-mypy-protobuf — not covered by `--pyi_out` at all
+--mypy_grpc_out - type stubs for the service/stub code (contract_pb2_grpc.pyi)
 
-> 💡 `types-grpcio` isn't part of this `protoc` command — it's a separate dev dependency that
+> 💡 **Why `--mypy_out` / `--mypy_grpc_out` instead of the built-in `--pyi_out`?**
+> `--pyi_out` (built into `grpcio-tools`) only covers messages — `contract_pb2_grpc.py`
+> (the Stub/Servicer classes) stays untyped, so `stub.SendHello(...)` shows up as `Any`.
+> `--mypy_out` / `--mypy_grpc_out` come from the [mypy-protobuf](https://github.com/nipunn1313/mypy-protobuf)
+> plugin: `--mypy_out` generates the same kind of message stubs as `--pyi_out` but with richer
+> types (e.g. `oneof`, `map<>`, `enum`), and `--mypy_grpc_out` additionally covers the
+> Stub/Servicer code that `--pyi_out` skips entirely. They're not "better" at the exact same
+> job — `--pyi_out` simply doesn't generate stubs for half the file.
+>
+> `types-grpcio` isn't part of this `protoc` command — it's a separate dev dependency that
 > types the `grpc` package itself (channels, servers, contexts), so mypy/your IDE understands
 > `grpc.insecure_channel(...)`, `grpc.server(...)`, etc. as well as the generated code above.
 > It comes from [typeshed](https://github.com/python/typeshed/tree/main/stubs/grpcio) — the
