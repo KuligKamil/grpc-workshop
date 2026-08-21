@@ -12,7 +12,13 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = ["pytest>=8.2.0", "ruff>=0.4.0", "poethepoet>=0.27.0"]
+dev = [
+  "pytest>=8.2.0",
+  "ruff>=0.4.0",
+  "poethepoet>=0.27.0",
+  "mypy-protobuf>=5.1.0",
+  "types-grpcio>=1.83.0",
+]
 
 [tool.poe.tasks]
 test-exercises = { shell = "poe generate-exercises && pytest tests/exercises/ -v" }
