@@ -5,6 +5,7 @@ Run: poe test-exercises
 """
 
 import pytest
+from google.protobuf import timestamp_pb2
 
 from exercises.generated import chat_pb2
 
@@ -17,10 +18,11 @@ def test_message_request_has_correct_fields():
 
 
 def test_message_response_has_correct_fields():
-    msg = chat_pb2.MessageResponse(message_id="id", status="ok", timestamp=1)
+    ts = timestamp_pb2.Timestamp(seconds=1)
+    msg = chat_pb2.MessageResponse(message_id="id", status="ok", timestamp=ts)
     assert msg.message_id == "id"
     assert msg.status == "ok"
-    assert msg.timestamp == 1
+    assert msg.timestamp == ts
 
 
 def test_history_request_has_correct_fields():
@@ -30,11 +32,12 @@ def test_history_request_has_correct_fields():
 
 
 def test_message_has_all_five_fields():
+    ts = timestamp_pb2.Timestamp(seconds=1)
     msg = chat_pb2.Message(
-        message_id="id", room_id="r", user="u", content="c", timestamp=1
+        message_id="id", room_id="r", user="u", content="c", timestamp=ts
     )
     assert msg.message_id == "id"
     assert msg.room_id == "r"
     assert msg.user == "u"
     assert msg.content == "c"
-    assert msg.timestamp == 1
+    assert msg.timestamp == ts
