@@ -7,7 +7,11 @@ Run: poe test-exercises
 import pytest
 from google.protobuf import timestamp_pb2
 
-from exercises.generated import chat_pb2
+pytest.importorskip(
+    "exercises.generated.chat_pb2",
+    reason="Complete Exercise 01 and run: poe generate-exercises",
+)
+from exercises.generated import chat_pb2  # noqa: E402
 
 
 def test_message_request_has_correct_fields():

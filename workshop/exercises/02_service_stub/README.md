@@ -66,7 +66,3 @@ If the server crashes on import, a method name is probably misspelled — check
 against the signatures in the **Context** section above.
 If it prints `unimplemented` when you call it, the stub is wired correctly —
 that's the expected placeholder response from gRPC.
-
-## Solution
-
-`solutions/02_service_stub/server.py`

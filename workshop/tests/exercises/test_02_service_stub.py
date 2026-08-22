@@ -23,19 +23,25 @@ def test_chatservicer_inherits_from_generated_base():
 
 
 def test_chatservicer_has_send_message():
-    assert callable(getattr(ChatServicer, "SendMessage", None))
+    # Must be defined on ChatServicer itself, not just inherited from the
+    # generated base class (which already provides UNIMPLEMENTED stubs).
+    assert "SendMessage" in vars(ChatServicer)
+    assert callable(ChatServicer.SendMessage)
 
 
 def test_chatservicer_has_get_history():
-    assert callable(getattr(ChatServicer, "GetHistory", None))
+    assert "GetHistory" in vars(ChatServicer)
+    assert callable(ChatServicer.GetHistory)
 
 
 def test_chatservicer_has_send_bulk_messages():
-    assert callable(getattr(ChatServicer, "SendBulkMessages", None))
+    assert "SendBulkMessages" in vars(ChatServicer)
+    assert callable(ChatServicer.SendBulkMessages)
 
 
 def test_chatservicer_has_chat():
-    assert callable(getattr(ChatServicer, "Chat", None))
+    assert "Chat" in vars(ChatServicer)
+    assert callable(ChatServicer.Chat)
 
 
 def test_chatservicer_can_be_instantiated():

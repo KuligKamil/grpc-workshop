@@ -57,7 +57,3 @@ If it raises `TypeError: insecure_channel() argument 1 must be str, not ellipsis
 you still have a `...` placeholder — fill in the channel address string.
 If it prints nothing and exits silently, the `except` block is swallowing the
 error — add a `print` inside the `except` so you can see what went wrong.
-
-## Solution
-
-`solutions/04_unary_client/client.py`

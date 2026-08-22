@@ -51,7 +51,7 @@ class ChatServicer(chat_pb2_grpc.ChatServiceServicer):
     #     # 3. Return BulkResponse(messages_sent=..., messages_failed=...)
 
     # def Chat(...):
-    #     # TODO Exercise 05 (bonus) — bidirectional streaming
+    #     # TODO Exercise 05 — implement bidirectional streaming
     #     # 1. Iterate request_iterator
     #     # 2. For each request, save and yield the message back
 
@@ -60,6 +60,9 @@ def serve(port: int = 50051) -> None:
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     chat_pb2_grpc.add_ChatServiceServicer_to_server(ChatServicer(), server)
     server.add_insecure_port(f"[::]:{port}")
-    server.start()
-    print(f"gRPC server listening on :{port}")
-    server.wait_for_termination()
+    try:
+        server.start()
+        print(f"gRPC server listening on :{port}")
+        server.wait_for_termination()
+    finally:
+        server.stop(grace=5)

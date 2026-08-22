@@ -47,7 +47,3 @@ exercises/generated/chat_pb2.pyi
 
 If `protoc` prints `Field number 0 is illegal`, a field tag is missing.
 If it prints `Expected field name`, a brace or semicolon is wrong.
-
-## Solution
-
-`solutions/01_protocol_buffers/chat.proto`

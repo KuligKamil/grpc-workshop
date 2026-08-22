@@ -97,7 +97,3 @@ poe client-send --room general --user alice ""
 
 If you get `UNIMPLEMENTED` instead of `INVALID_ARGUMENT`, `SendMessage` is
 still returning `pass` — make sure the method is uncommented in `server.py`.
-
-## Solution
-
-`solutions/03_unary_service/server.py`

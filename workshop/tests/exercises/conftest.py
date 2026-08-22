@@ -20,9 +20,11 @@ def grpc_addr():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=4))
     chat_pb2_grpc.add_ChatServiceServicer_to_server(ChatServicer(), server)
     port = server.add_insecure_port("[::]:0")
-    server.start()
-    yield f"localhost:{port}"
-    server.stop(grace=None)
+    try:
+        server.start()
+        yield f"localhost:{port}"
+    finally:
+        server.stop(grace=None)
 
 
 @pytest.fixture
