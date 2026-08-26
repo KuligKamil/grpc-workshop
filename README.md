@@ -138,7 +138,14 @@ except grpc.RpcError as e:
 
 [https://github.com/Ag0r9/k6-testing/](https://github.com/Ag0r9/k6-testing/)
 
-![alt text](assets/grpc_vs_rest.png)
+We tested possibility of bottleneck for two technologies used for streaming comunitaction: grpcio (gRPC) and FastAPI (REST). The best insight gives tests run 1000 virtual users and 10000 virtual users. 
+
+![Graph comparing RPS for gRPC and FastAPI for 1000 Virtual Users](assets/VUS1000.png)
+
+
+![Graph comparing RPS for gRPC and FastAPI for 10000 Virtual Users](assets/VUS10000.png)
+
+Based on our tests, we can see that with bigger payload, there's significant difference in Responses Per Second.
 
 If you want to see results with a better methodology https://kth.diva-portal.org/smash/get/diva2:1792957/FULLTEXT01.pdf
 
