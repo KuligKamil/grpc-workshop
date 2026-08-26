@@ -1,15 +1,43 @@
 """Exercise 07 — Final chat client in client.py.
 
-Implement `send`, `history`, and `chat` in `exercises/client.py` using
-knowledge from Exercises 05 and 06.
+Implement `send`, `history`, and `chat` in
+`exercises/07_final_chat_client/client.py` using knowledge from
+Exercises 05 and 06.
 """
 
 from __future__ import annotations
+
+import importlib.util
+from pathlib import Path
+
+import pytest
 import typer
 
-from exercises import client
-from exercises.generated import chat_pb2
-import pytest
+pytest.importorskip(
+    "exercises.generated.chat_pb2",
+    reason="Complete Exercise 01 and run: poe generate-exercises",
+)
+from exercises.generated import chat_pb2  # noqa: E402
+
+_CLIENT_PATH = (
+    Path(__file__).resolve().parents[2]
+    / "exercises"
+    / "07_final_chat_client"
+    / "client.py"
+)
+
+
+def _load_client_module():
+    spec = importlib.util.spec_from_file_location(
+        "exercise_07_final_chat_client", _CLIENT_PATH
+    )
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+client = _load_client_module()
 
 
 def _split_addr(grpc_addr: str) -> tuple[str, int]:

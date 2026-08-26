@@ -34,10 +34,27 @@ sequenceDiagram
 
 ## Your task
 
-Open `deadlines_starter.py` and fill in TODOs:
+Open `deadlines_starter.py` and fill in `demo_deadline_exceeded` and
+`demo_invalid_argument`.
 
-1. **Deadline demo** — call an unreachable target with `wait_for_ready=True` and a short timeout, then catch and print `DEADLINE_EXCEEDED`.
-2. **Error handling demo** — call `SendMessage` with empty content and catch `INVALID_ARGUMENT` with details.
+### Task 1 — Deadline demo
+
+1. Open an `insecure_channel` to `UNREACHABLE_SERVER` (use a context manager)
+2. Create a `ChatServiceStub`
+3. Call `stub.SendMessage(...)` with a `MessageRequest`, passing `timeout=0.2`
+   and `wait_for_ready=True`
+4. Catch `grpc.RpcError` and print `error.code()`
+
+`wait_for_ready=True` tells gRPC to keep retrying the connection instead of
+failing fast with `UNAVAILABLE` — that's what turns this into a
+`DEADLINE_EXCEEDED` once the timeout elapses.
+
+### Task 2 — Error handling demo
+
+The channel and stub are already created for you against `EXERCISE_SERVER`:
+
+1. Call `stub.SendMessage(...)` with an empty `content`
+2. Catch `grpc.RpcError` and print both `error.code()` and `error.details()`
 
 ## Run it
 
@@ -60,6 +77,3 @@ You should see output similar to:
 
 If deadline shows `UNAVAILABLE`, check that your call uses `wait_for_ready=True`.
 
-## Solution
-
-`solutions/06_deadlines_cancellation_errors/deadlines_demo.py`

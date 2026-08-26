@@ -4,9 +4,10 @@
 
 Extend the server with all four communication patterns and test each one from the client.
 
-This exercise has two required parts and one bonus part:
-- **Required:** server streaming and client streaming
-- **Bonus:** bidirectional streaming (`Chat`)
+This exercise has three required parts:
+- server streaming (`GetHistory`)
+- client streaming (`SendBulkMessages`)
+- bidirectional streaming (`Chat`)
 
 ## Prerequisites
 
@@ -49,7 +50,7 @@ sequenceDiagram
     S-->>C: BulkResponse(messages_sent=N)
 ```
 
-**Bidirectional — `Chat`** (bonus — many requests, many responses interleaved):
+**Bidirectional — `Chat`** (many requests, many responses interleaved):
 
 ```mermaid
 sequenceDiagram
@@ -114,18 +115,25 @@ response = stub.SendBulkMessages(messages())
 print(f"Sent: {response.messages_sent}")
 ```
 
-## Bonus Task
-
-### Bidirectional streaming: `Chat`
-
-This is optional if you’re short on time. Try it after the required tasks are
-working.
+### Task 3 — Bidirectional streaming: `Chat`
 
 ```python
 def Chat(self, request_iterator, context):
-    for request in request_iterator:
-        msg = _save(request)
-        yield msg   # echo the saved message back
+    for request in request_iterator:   # ← iterate the stream, like SendBulkMessages
+        msg = _make_message(request)
+        yield msg   # ← key: yield inside the loop, so replies interleave with requests
+```
+
+Client side — pass a **generator** as the argument, same as `SendBulkMessages`,
+but this time iterate the replies as they stream back:
+
+```python
+def requests():
+    for text in ["Hi there!", "How does gRPC work?", "Thanks, goodbye!"]:
+        yield chat_pb2.MessageRequest(room_id="general", user="alice", content=text)
+
+for reply in stub.Chat(requests()):
+    print(f"← [{reply.user}] {reply.content}")
 ```
 
 ## Test it
@@ -171,10 +179,6 @@ If `messages_sent` is 0, the `for request in request_iterator` loop isn't
 reached — make sure you're passing the generator object, not calling it
 (`messages()` not `messages`).
 
-**Bonus (Chat)** — `poe client-chat` should echo each typed line back with a
+**Task 3 (Chat)** — `poe client-chat` should echo each typed line back with a
 `←` prefix. If nothing comes back, `Chat` isn't yielding — check that you
 call `_make_message` and `yield` the result.
-
-## Solution
-
-`solutions/05_streaming/streaming.py`

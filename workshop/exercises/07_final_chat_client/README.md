@@ -100,6 +100,3 @@ If `send` fails with `INVALID_ARGUMENT`, your content is empty.
 If `history` prints nothing, check room names.
 If `chat` never prints replies, verify you are iterating `stub.Chat(...)`.
 
-## Solution
-
-`solutions/client.py`

@@ -679,9 +679,6 @@ If it prints `Expected field name`, a brace or semicolon is wrong.
 
 ## Solution
 
-`solutions/01_protocol_buffers/chat.proto`
-
-
 <details>
 
 <summary>Click to view Solution 1</summary>
@@ -806,8 +803,6 @@ that's the expected placeholder response from gRPC.
 
 ## Solution
 
-`solutions/02_service_stub/server.py`
-
 
 <details>
 
@@ -861,9 +856,12 @@ def serve(port: int = 50051) -> None:
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     chat_pb2_grpc.add_ChatServiceServicer_to_server(ChatServicer(), server)
     server.add_insecure_port(f"[::]:{port}")
-    server.start()
-    print(f"gRPC server listening on :{port}")
-    server.wait_for_termination()
+    try:
+        server.start()
+        print(f"gRPC server listening on :{port}")
+        server.wait_for_termination()
+    finally:
+        server.stop(grace=5)
 
 
 if __name__ == "__main__":
@@ -975,8 +973,6 @@ still returning `pass` — make sure the method is uncommented in `server.py`.
 
 ## Solution
 
-`solutions/03_unary_service/server.py`
-
 
 <details>
 
@@ -1041,9 +1037,12 @@ def serve(port: int = 50051) -> None:
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     chat_pb2_grpc.add_ChatServiceServicer_to_server(ChatServicer(), server)
     server.add_insecure_port(f"[::]:{port}")
-    server.start()
-    print(f"gRPC server listening on :{port}")
-    server.wait_for_termination()
+    try:
+        server.start()
+        print(f"gRPC server listening on :{port}")
+        server.wait_for_termination()
+    finally:
+        server.stop(grace=5)
 
 
 if __name__ == "__main__":
@@ -1115,8 +1114,6 @@ error — add a `print` inside the `except` so you can see what went wrong.
 
 ## Solution
 
-`solutions/04_unary_client/client.py`
-
 
 <details>
 
@@ -1161,9 +1158,10 @@ if __name__ == "__main__":
 
 Extend the server with all four communication patterns and test each one from the client.
 
-This exercise has two required parts and one bonus part:
-- **Required:** server streaming and client streaming
-- **Bonus:** bidirectional streaming (`Chat`)
+This exercise has three required parts:
+- server streaming (`GetHistory`)
+- client streaming (`SendBulkMessages`)
+- bidirectional streaming (`Chat`)
 
 ## Prerequisites
 
@@ -1206,7 +1204,7 @@ sequenceDiagram
     S-->>C: BulkResponse(messages_sent=N)
 ```
 
-**Bidirectional — `Chat`** (bonus — many requests, many responses interleaved):
+**Bidirectional — `Chat`** (many requests, many responses interleaved):
 
 ```mermaid
 sequenceDiagram
@@ -1271,18 +1269,25 @@ response = stub.SendBulkMessages(messages())
 print(f"Sent: {response.messages_sent}")
 ```
 
-## Bonus Task
-
-### Bidirectional streaming: `Chat`
-
-This is optional if you’re short on time. Try it after the required tasks are
-working.
+### Task 3 — Bidirectional streaming: `Chat`
 
 ```python
 def Chat(self, request_iterator, context):
-    for request in request_iterator:
-        msg = _save(request)
-        yield msg   # echo the saved message back
+    for request in request_iterator:   # ← iterate the stream, like SendBulkMessages
+        msg = _make_message(request)
+        yield msg   # ← key: yield inside the loop, so replies interleave with requests
+```
+
+Client side — pass a **generator** as the argument, same as `SendBulkMessages`,
+but this time iterate the replies as they stream back:
+
+```python
+def requests():
+    for text in ["Hi there!", "How does gRPC work?", "Thanks, goodbye!"]:
+        yield chat_pb2.MessageRequest(room_id="general", user="alice", content=text)
+
+for reply in stub.Chat(requests()):
+    print(f"← [{reply.user}] {reply.content}")
 ```
 
 ## Test it
@@ -1328,13 +1333,12 @@ If `messages_sent` is 0, the `for request in request_iterator` loop isn't
 reached — make sure you're passing the generator object, not calling it
 (`messages()` not `messages`).
 
-**Bonus (Chat)** — `poe client-chat` should echo each typed line back with a
+**Task 3 (Chat)** — `poe client-chat` should echo each typed line back with a
 `←` prefix. If nothing comes back, `Chat` isn't yielding — check that you
 call `_make_message` and `yield` the result.
 
 ## Solution
 
-`solutions/05_streaming/streaming.py`
 
 
 <details>
@@ -1478,10 +1482,27 @@ sequenceDiagram
 
 ## Your task
 
-Open `deadlines_starter.py` and fill in TODOs:
+Open `deadlines_starter.py` and fill in `demo_deadline_exceeded` and
+`demo_invalid_argument`.
 
-1. **Deadline demo** — call an unreachable target with `wait_for_ready=True` and a short timeout, then catch and print `DEADLINE_EXCEEDED`.
-2. **Error handling demo** — call `SendMessage` with empty content and catch `INVALID_ARGUMENT` with details.
+### Task 1 — Deadline demo
+
+1. Open an `insecure_channel` to `UNREACHABLE_SERVER` (use a context manager)
+2. Create a `ChatServiceStub`
+3. Call `stub.SendMessage(...)` with a `MessageRequest`, passing `timeout=0.2`
+   and `wait_for_ready=True`
+4. Catch `grpc.RpcError` and print `error.code()`
+
+`wait_for_ready=True` tells gRPC to keep retrying the connection instead of
+failing fast with `UNAVAILABLE` — that's what turns this into a
+`DEADLINE_EXCEEDED` once the timeout elapses.
+
+### Task 2 — Error handling demo
+
+The channel and stub are already created for you against `EXERCISE_SERVER`:
+
+1. Call `stub.SendMessage(...)` with an empty `content`
+2. Catch `grpc.RpcError` and print both `error.code()` and `error.details()`
 
 ## Run it
 
@@ -1506,7 +1527,6 @@ If deadline shows `UNAVAILABLE`, check that your call uses `wait_for_ready=True`
 
 ## Solution
 
-`solutions/06_deadlines_cancellation_errors/deadlines_demo.py`
 
 
 <details>
@@ -1689,7 +1709,6 @@ If `chat` never prints replies, verify you are iterating `stub.Chat(...)`.
 
 ## Solution
 
-`solutions/client.py`
 
 
 <details>
