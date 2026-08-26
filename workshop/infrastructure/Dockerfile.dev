@@ -10,7 +10,7 @@ COPY pyproject.toml .python-version uv.lock README.md ./
 RUN uv sync --frozen
 
 COPY infrastructure/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+RUN sed -i 's/\r$//' /entrypoint.sh && chmod +x /entrypoint.sh
 
 # Entrypoint auto-generates protobuf stubs then delegates to uv run <cmd>.
 ENTRYPOINT ["/entrypoint.sh"]
