@@ -172,11 +172,11 @@ A common rule of thumb: Use REST API at the edge, gRPC inside.
 
 ### Basics in gRPC 
 
-Write a contract. Create .proto file use Protobuf.
+Write a contract. Create a .proto file using Protobuf syntax.
 
-Generate client and server stubs code with grpc_tools.protoc.
+Generate client and server stub code with grpc_tools.protoc.
 
-Implement server and call it from client.
+Implement the server and call it from the client.
 
 
 ---
@@ -231,16 +231,41 @@ sequenceDiagram
 
 ---
 
+
+## What is a `.proto` file?
+
+It's a plain-text schema file, written in Protocol Buffers (Protobuf) syntax — the
+contract both client and server agree on. You define:
+
+- `message` — the data structures sent over the wire (like a struct/dataclass)
+- `service` — the RPC methods available, with their request/response message types
+
+`protoc` (the Protobuf compiler) reads this file and generates the client/server
+code for you — that's the `python -m grpc_tools.protoc ...` command below.
+More on Protobuf syntax (types, `repeated`, `oneof`, etc.) in the
+[Protocol Buffers section](#protocol-buffers--the-language-of-grpc) further down.
+
+
 # LIVE CODING. 
 
-* FOR KAMIL
-  * Light Mode ON 
-  * Slow down
-  * One file on the screen
-  * Check if people see the code on the screen
-* Not code just watch
-* After live code every person can run it
+Why live coding, not just reading code? Going through the whole flow step by
+step — project setup → `.proto` → generate stubs → server → client — shows
+**where it's easy to make a mistake** (forgetting to regenerate stubs after
+editing `.proto`, mismatched ports, wrong field names) before you hit those
+same mistakes on your own.
 
+* Don't code -> just watch.
+* After live code every person can run it.
+
+<details>
+<summary>🎤 Presenter notes (for Kamil)</summary>
+
+* Light Mode ON
+* Slow down
+* One file on the screen
+* Check if people see the code on the screen
+
+</details>
 
 Create new fresh project:
 
