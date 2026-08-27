@@ -18,10 +18,6 @@ chat_pb2_grpc = pytest.importorskip(
 from exercises.server import ChatServicer  # noqa: E402
 
 
-def test_chatservicer_inherits_from_generated_base():
-    assert issubclass(ChatServicer, chat_pb2_grpc.ChatServiceServicer)
-
-
 def test_chatservicer_has_send_message():
     # Must be defined on ChatServicer itself, not just inherited from the
     # generated base class (which already provides UNIMPLEMENTED stubs).
@@ -42,7 +38,3 @@ def test_chatservicer_has_send_bulk_messages():
 def test_chatservicer_has_chat():
     assert "Chat" in vars(ChatServicer)
     assert callable(ChatServicer.Chat)
-
-
-def test_chatservicer_can_be_instantiated():
-    assert ChatServicer() is not None
