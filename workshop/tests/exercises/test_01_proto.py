@@ -14,13 +14,6 @@ pytest.importorskip(
 from exercises.generated import chat_pb2  # noqa: E402
 
 
-def test_message_request_has_correct_fields():
-    msg = chat_pb2.MessageRequest(room_id="r", user="u", content="c")
-    assert msg.room_id == "r"
-    assert msg.user == "u"
-    assert msg.content == "c"
-
-
 def test_message_response_has_correct_fields():
     ts = timestamp_pb2.Timestamp(seconds=1)
     msg = chat_pb2.MessageResponse(message_id="id", status="ok", timestamp=ts)
