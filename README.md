@@ -46,9 +46,21 @@ docker compose run --rm workshop poe test-exercises
 uv sync
 source .venv/bin/activate
 poe test-exercises
-poe test-solutions
 ```
 
+If you see 25 failed, 4 passed tests. Everything is ok. The tests are designed to fail until you implement the solution.
+
+---
+
+# Agenda
+
+1) Theory
+
+2) Live coding
+
+3) Exercises
+
+---
 
 # What is gRPC (recursive acronym for gRPC Remote Procedure Calls)?
 
@@ -86,6 +98,9 @@ poe test-solutions
 | Streaming | Server-Sent Events (SSE), WebSocket, Long Polling | [Native] Server, Client, Bidirectional |
 | Contract + Code gen | Optional | Protobuf |
 | Browser support | ✅ Native | ❌ Needs grpc-web proxy |
+
+
+**Protobuf** is a language-neutral schema language and binary serialization format.
 
 ---
 
@@ -188,6 +203,22 @@ Implement the server and call it from the client.
 
 ---
 
+## What is a `.proto` file?
+
+It's a plain-text schema file, written in Protocol Buffers (Protobuf) syntax — the
+contract both client and server agree on. You define:
+
+- `message` — the data structures sent over the wire (like a struct/dataclass)
+- `service` — the RPC methods available, with their request/response message types
+
+`protoc` (the Protobuf compiler) reads this file and generates the client/server
+code for you — that's the `python -m grpc_tools.protoc ...` command below.
+More on Protobuf syntax (types, `repeated`, `oneof`, etc.) in the
+[Protocol Buffers section](#protocol-buffers--the-language-of-grpc) further down.
+
+
+---
+
 # Communication Patterns
 
 ## Unary: Request - Response
@@ -237,20 +268,6 @@ sequenceDiagram
 ```
 
 ---
-
-
-## What is a `.proto` file?
-
-It's a plain-text schema file, written in Protocol Buffers (Protobuf) syntax — the
-contract both client and server agree on. You define:
-
-- `message` — the data structures sent over the wire (like a struct/dataclass)
-- `service` — the RPC methods available, with their request/response message types
-
-`protoc` (the Protobuf compiler) reads this file and generates the client/server
-code for you — that's the `python -m grpc_tools.protoc ...` command below.
-More on Protobuf syntax (types, `repeated`, `oneof`, etc.) in the
-[Protocol Buffers section](#protocol-buffers--the-language-of-grpc) further down.
 
 
 # LIVE CODING. 
@@ -618,7 +635,6 @@ docker compose run --rm workshop poe test-exercises
 uv sync
 source .venv/bin/activate
 poe test-exercises
-poe test-solutions
 ```
 
 
