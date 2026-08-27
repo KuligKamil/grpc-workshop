@@ -1,30 +1,6 @@
 # gRPC for Beginners
 
 
-Adam Gorgon -  ML Engineer 
-
-github: https://github.com/Ag0r9
-
-linkedin: https://www.linkedin.com/in/adam-gorgon/
-
-discord: gadamzaduzo
-
----
-
-Kamil Kulig - Senior Backend Developer at cthings.co
-
-github: https://github.com/KuligKamil
-
-linkedin: https://www.linkedin.com/in/kamil-kulig-81488b89/
-
-discord: kamilkulig
-
----
-
-![alt text](assets/cthings.png)
-
-
-
 # Project Setup
 
 ![alt text](assets/qrcode_github.com.png)
@@ -49,6 +25,31 @@ poe test-exercises
 ```
 
 If you see 25 failed, 4 passed tests. Everything is ok. The tests are designed to fail until you implement the solution.
+
+---
+
+Adam Gorgon -  ML Engineer 
+
+github: https://github.com/Ag0r9
+
+linkedin: https://www.linkedin.com/in/adam-gorgon/
+
+discord: gadamzaduzo
+
+---
+
+Kamil Kulig - Senior Backend Developer at cthings.co
+
+github: https://github.com/KuligKamil
+
+linkedin: https://www.linkedin.com/in/kamil-kulig-81488b89/
+
+discord: kamilkulig
+
+---
+
+![alt text](assets/cthings.png)
+
 
 ---
 
