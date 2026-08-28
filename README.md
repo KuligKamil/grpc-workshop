@@ -193,7 +193,7 @@ A common rule of thumb: Use REST API at the edge, gRPC inside.
 
 ---
 
-### Basics in gRPC 
+# Basics in gRPC 
 
 Write a contract. Create a .proto file using Protobuf syntax.
 
@@ -270,6 +270,30 @@ sequenceDiagram
 
 ---
 
+## Dependencies to install:
+
+* Runtime dependencies
+
+  * grpcio — The core gRPC runtime library. Provides the actual client/server implementation, channels, and networking used by your generated contract_pb2_grpc.py code at runtime. Required to run your server or client at all.
+
+  * grpcio-tools — Contains the protoc compiler plus the gRPC codegen plugin. Used to generate _pb2.py (message classes) and _pb2_grpc.py (service stubs) from your .proto files. Not needed to run the app once code is generated, but needed to regenerate it after editing contract.proto.
+
+* Dev dependencies
+  
+  * mypy-protobuf — A protoc plugin that generates .pyi type stub files (e.g. contract_pb2.pyi, contract_pb2_grpc.pyi) alongside the regular generated code. These stubs give your IDE and type checker accurate types for message fields and RPC signatures, instead of treating everything as Any.
+
+  * types-grpcio — Third-party type stubs for the grpcio library itself. Gives your IDE/type checker proper types for grpc.Server, grpc.Channel, etc., which grpcio doesn't ship with natively.
+
+
+
+## Editor support for `.proto` files
+
+The two extras above improve typing for the *generated* Python code, but you'll also
+want proper syntax highlighting, linting, and navigation for the `.proto` files themselves:
+
+- **VS Code** — install the [Buf extension](https://marketplace.visualstudio.com/items?itemName=bufbuild.vscode-buf)).
+- **PyCharm** — Protobuf support is bundled out of the box
+---
 
 # LIVE CODING. 
 
@@ -676,6 +700,8 @@ extra packages to improve editor/type-checker support for the generated gRPC cod
   in 2025 in favor of this.
 
 Neither is required to run the exercises — they only improve static typing and IDE support.
+
+
 # Exercise 1: Proto Messages
 
 ## Goal
