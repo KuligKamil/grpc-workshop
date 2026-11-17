@@ -19,10 +19,16 @@ services:
     tty: true
 
   # ── Solutions server ─────────────────────────────────────────────────────────
-  # Runs the reference (solutions) gRPC server.
-  # Used for manual exploration and smoke-testing the CLI.
+  # Runs the gRPC server (`poe server`) with port 50051 published to the host.
   #
   #   docker compose up server
+  #
+  # Clients: either run them on the host (`localhost:50051`), or from another
+  # container on the same compose network, pointing at the service name:
+  #   docker compose run --rm workshop poe client-send --host server "Hello"
+  # NOTE: `docker compose run workshop poe server` + a second `run` for the
+  # client will NOT work: each `run` is a separate container, so `localhost`
+  # in the client container is not the server.
   server:
     build:
       context: .
@@ -30,12 +36,12 @@ services:
     volumes:
       - .:/workspace
     working_dir: /workspace
-    command: ["poe", "server-solutions"]
+    command: ["poe", "server"]
     ports:
       - "50051:50051"   # gRPC
     healthcheck:
-      test: ["CMD", "python", "-c",
-             "import grpc; ch=grpc.insecure_channel('localhost:50051'); ch.close()"]
+      test: ["CMD", "/opt/venv/bin/python", "-c",
+             "import grpc; ch=grpc.insecure_channel('localhost:50051'); grpc.channel_ready_future(ch).result(timeout=2)"]
       interval: 5s
       timeout: 3s
       retries: 10
