@@ -1625,7 +1625,7 @@ If deadline shows `UNAVAILABLE`, check that your call uses `wait_for_ready=True`
 """Solution — Exercise 6: deadlines, cancellation, and error handling.
 
 Run your solution server first:
-    poe server-solutions
+    poe server
 """
 
 import grpc
