@@ -18,11 +18,6 @@ services:
     stdin_open: true
     tty: true
 
-  # ── Solutions server ─────────────────────────────────────────────────────────
-  # Runs the reference (solutions) gRPC server.
-  # Used for manual exploration and smoke-testing the CLI.
-  #
-  #   docker compose up server
   server:
     build:
       context: .
@@ -30,12 +25,12 @@ services:
     volumes:
       - .:/workspace
     working_dir: /workspace
-    command: ["poe", "server-solutions"]
+    command: ["poe", "server"]
     ports:
       - "50051:50051"   # gRPC
     healthcheck:
-      test: ["CMD", "python", "-c",
-             "import grpc; ch=grpc.insecure_channel('localhost:50051'); ch.close()"]
+      test: ["CMD", "uv", "run", "--no-sync", "python", "-c",
+             "import grpc; ch=grpc.insecure_channel('localhost:50051'); grpc.channel_ready_future(ch).result(timeout=2)"]
       interval: 5s
       timeout: 3s
       retries: 10

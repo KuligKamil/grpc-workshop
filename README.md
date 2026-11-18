@@ -673,6 +673,18 @@ You have three ways to run exercises:
 ```bash
 docker compose run --rm workshop <poe command>
 ```
+
+> **Server + client with Docker:** every `docker compose run` starts a separate
+> container, so a client started that way cannot reach a server started in another
+> one via `localhost`. Use the published `server` service instead:
+>
+> ```bash
+> docker compose up server                                  # terminal 1
+> docker compose run --rm workshop poe client-send --host server "Hello"   # terminal 2
+> ```
+>
+> Or run the client on your host (`uv run poe client-send ...`), which reaches the
+> server through the published port `localhost:50051`.
 2. **use uv**
 ```bash
 uv run <poe command>
@@ -1613,7 +1625,7 @@ If deadline shows `UNAVAILABLE`, check that your call uses `wait_for_ready=True`
 """Solution — Exercise 6: deadlines, cancellation, and error handling.
 
 Run your solution server first:
-    poe server-solutions
+    poe server
 """
 
 import grpc

@@ -4,6 +4,12 @@ WORKDIR /workspace
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
+# Keep the venv outside /workspace: the host folder is bind-mounted over
+# /workspace at runtime, which would hide the venv built here (and on Windows
+# collide with a host-created .venv containing Scripts\ instead of bin/).
+ENV UV_PROJECT_ENVIRONMENT=/opt/venv
+ENV UV_LINK_MODE=copy
+
 # Install dependencies from lock file for reproducible builds.
 # The project source is mounted at runtime, so we only need pyproject + lock here.
 COPY pyproject.toml .python-version uv.lock README.md ./
