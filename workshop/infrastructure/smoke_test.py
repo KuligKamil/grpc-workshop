@@ -24,6 +24,52 @@ WORKSHOP = Path(__file__).resolve().parents[1]
 PORT = 50051
 HOST = "127.0.0.1"
 
+# `poe server*` is a sequence task: poe itself spawns the real grpc server as
+# a grandchild python process. `Popen.terminate()` only signals the direct
+# child (poe) — on Windows that leaves the grandchild server running and
+# still listening on PORT, so the *next* server in the suite starts while the
+# previous one is still alive and answering requests. Put each server in its
+# own process group/job on start so we can kill the whole tree on stop.
+_POPEN_GROUP_KWARGS: dict[str, object] = (
+    {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP}
+    if sys.platform == "win32"
+    else {"start_new_session": True}
+)
+
+
+def _start_server(task: str) -> subprocess.Popen[str]:
+    return subprocess.Popen(
+        [sys.executable, "-m", "poethepoet", task],
+        cwd=WORKSHOP,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        **_POPEN_GROUP_KWARGS,
+    )
+
+
+def _stop_server(proc: subprocess.Popen[str]) -> None:
+    """Kill the whole process tree, not just the top-level `poe` process."""
+    if sys.platform == "win32":
+        subprocess.run(
+            ["taskkill", "/PID", str(proc.pid), "/T", "/F"],
+            capture_output=True,
+            check=False,
+        )
+    else:
+        import os
+        import signal
+
+        try:
+            os.killpg(proc.pid, signal.SIGTERM)
+        except ProcessLookupError:
+            pass
+    try:
+        proc.wait(timeout=10)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        proc.wait(timeout=10)
+
 
 # `poe server*` runs generate-exercises first, which *deletes* the stubs before
 # writing them. A client starting in that window dies with ImportError, so wait
@@ -80,13 +126,7 @@ def main() -> int:
     checks = Checks()
 
     print("Starting `poe server` ...")
-    server = subprocess.Popen(
-        [sys.executable, "-m", "poethepoet", "server"],
-        cwd=WORKSHOP,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
-    )
+    server = _start_server("server")
     try:
         if not _wait_for_server(PORT):
             output = ""
@@ -133,22 +173,12 @@ def main() -> int:
             out,
         )
     finally:
-        server.terminate()
-        try:
-            server.wait(timeout=10)
-        except subprocess.TimeoutExpired:
-            server.kill()
+        _stop_server(server)
 
     # The bonus servers replace the normal one, so run them separately.
     for task, label in (("server-broadcast", "poe server-broadcast"),):
         print(f"Starting `poe {task}` ...")
-        proc = subprocess.Popen(
-            [sys.executable, "-m", "poethepoet", task],
-            cwd=WORKSHOP,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-        )
+        proc = _start_server(task)
         try:
             if not _wait_for_server(PORT):
                 checks.expect(label, False, "never started listening")
@@ -156,22 +186,12 @@ def main() -> int:
             code, out = _run("final-send", "--room", "smoke", "--user", "a", "bcast")
             checks.expect(label, code == 0 and "status=ok" in out, out)
         finally:
-            proc.terminate()
-            try:
-                proc.wait(timeout=10)
-            except subprocess.TimeoutExpired:
-                proc.kill()
+            _stop_server(proc)
 
     # The intercepted server rejects unauthenticated calls, so its own demo
     # client is the only thing that can talk to it.
     print("Starting `poe server-intercepted` ...")
-    proc = subprocess.Popen(
-        [sys.executable, "-m", "poethepoet", "server-intercepted"],
-        cwd=WORKSHOP,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
-    )
+    proc = _start_server("server-intercepted")
     try:
         if _wait_for_server(PORT):
             code, out = _run("client-intercepted")
@@ -183,11 +203,7 @@ def main() -> int:
         else:
             checks.expect("poe server-intercepted", False, "never started listening")
     finally:
-        proc.terminate()
-        try:
-            proc.wait(timeout=10)
-        except subprocess.TimeoutExpired:
-            proc.kill()
+        _stop_server(proc)
 
     print()
     if checks.failures:
