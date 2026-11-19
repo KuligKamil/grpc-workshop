@@ -983,6 +983,8 @@ from concurrent import futures
 import grpc
 from google.protobuf.timestamp_pb2 import Timestamp
 
+from grpc_reflection.v1alpha import reflection
+
 from exercises.generated import chat_pb2, chat_pb2_grpc
 
 _store: dict[str, list[chat_pb2.Message]] = {}
@@ -1020,6 +1022,16 @@ class ChatServicer(chat_pb2_grpc.ChatServiceServicer):
 def serve(port: int = 50051) -> None:
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     chat_pb2_grpc.add_ChatServiceServicer_to_server(ChatServicer(), server)
+
+    # Reflection lets grpcurl discover the service without chat.proto.
+    reflection.enable_server_reflection(
+        (
+            chat_pb2.DESCRIPTOR.services_by_name["ChatService"].full_name,
+            reflection.SERVICE_NAME,
+        ),
+        server,
+    )
+
     server.add_insecure_port(f"[::]:{port}")
     try:
         server.start()
@@ -1229,6 +1241,8 @@ import grpc
 from google.protobuf.timestamp_pb2 import Timestamp
 from grpc import StatusCode
 
+from grpc_reflection.v1alpha import reflection
+
 from exercises.generated import chat_pb2, chat_pb2_grpc
 
 _store: dict[str, list[chat_pb2.Message]] = {}
@@ -1276,6 +1290,16 @@ class ChatServicer(chat_pb2_grpc.ChatServiceServicer):
 def serve(port: int = 50051) -> None:
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     chat_pb2_grpc.add_ChatServiceServicer_to_server(ChatServicer(), server)
+
+    # Reflection lets grpcurl discover the service without chat.proto.
+    reflection.enable_server_reflection(
+        (
+            chat_pb2.DESCRIPTOR.services_by_name["ChatService"].full_name,
+            reflection.SERVICE_NAME,
+        ),
+        server,
+    )
+
     server.add_insecure_port(f"[::]:{port}")
     try:
         server.start()
@@ -1757,6 +1781,8 @@ import grpc
 from google.protobuf.timestamp_pb2 import Timestamp
 from grpc import StatusCode
 
+from grpc_reflection.v1alpha import reflection
+
 from exercises.generated import chat_pb2, chat_pb2_grpc
 
 # In-memory message store: room_id → list[Message]
@@ -1821,6 +1847,16 @@ class ChatServicer(chat_pb2_grpc.ChatServiceServicer):
 def serve(port: int = 50051) -> None:
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     chat_pb2_grpc.add_ChatServiceServicer_to_server(ChatServicer(), server)
+
+    # Reflection lets grpcurl discover the service without chat.proto.
+    reflection.enable_server_reflection(
+        (
+            chat_pb2.DESCRIPTOR.services_by_name["ChatService"].full_name,
+            reflection.SERVICE_NAME,
+        ),
+        server,
+    )
+
     server.add_insecure_port(f"[::]:{port}")
     try:
         server.start()
@@ -2350,6 +2386,103 @@ is actually unregistered.
 - Use `context.is_active()` to drop a subscriber that has stopped reading.
 - Replace the unbounded queue with `queue.Queue(maxsize=...)` and decide what a
   slow client should do: block the publisher, or lose messages?
+
+# Bonus: grpcurl and reflection *(optional)*
+
+**Estimated time:** ~10 min
+
+gRPC is binary, so you cannot poke at it with `curl`. The equivalent tool is
+[grpcurl](https://github.com/fullstorydev/grpcurl) — and it only needs to know
+your schema. You can hand it `chat.proto`, or let the server describe itself.
+
+## Server reflection
+
+`serve()` already enables it:
+
+```python
+from grpc_reflection.v1alpha import reflection
+
+reflection.enable_server_reflection(
+    (
+        chat_pb2.DESCRIPTOR.services_by_name["ChatService"].full_name,
+        reflection.SERVICE_NAME,
+    ),
+    server,
+)
+```
+
+This registers an extra service whose job is answering "what do you serve, and
+what do those messages look like?". Clients then discover everything at
+runtime. You can see it working without installing anything:
+
+```bash
+poe server     # terminal 1
+```
+
+```bash
+# terminal 2 — ask the server what it serves
+uv run python -c "
+import grpc
+from grpc_reflection.v1alpha import reflection_pb2, reflection_pb2_grpc
+stub = reflection_pb2_grpc.ServerReflectionStub(
+    grpc.insecure_channel('localhost:50051')
+)
+req = reflection_pb2.ServerReflectionRequest(list_services='')
+for resp in stub.ServerReflectionInfo(iter([req])):
+    for service in resp.list_services_response.service:
+        print(service.name)
+"
+```
+
+Output:
+
+```
+chat.ChatService
+grpc.reflection.v1alpha.ServerReflection
+```
+
+## Using grpcurl
+
+`grpcurl` is a single Go binary (`brew install grpcurl`, or grab a release from
+the project page). With reflection on, no `.proto` is needed:
+
+```bash
+# What services are there?
+grpcurl -plaintext localhost:50051 list
+
+# What methods does ChatService have?
+grpcurl -plaintext localhost:50051 list chat.ChatService
+
+# What does SendMessage expect?
+grpcurl -plaintext localhost:50051 describe chat.MessageRequest
+
+# Call it — JSON in, JSON out
+grpcurl -plaintext -d '{"room_id":"general","user":"alice","content":"from grpcurl"}' \
+    localhost:50051 chat.ChatService/SendMessage
+
+# Server streaming: one response object per message
+grpcurl -plaintext -d '{"room_id":"general","limit":10}' \
+    localhost:50051 chat.ChatService/GetHistory
+```
+
+`-plaintext` is required because the workshop server has no TLS. Without
+reflection you would pass the schema yourself:
+
+```bash
+grpcurl -plaintext -import-path exercises/01_protocol_buffers -proto chat.proto \
+    localhost:50051 list
+```
+
+## Worth knowing
+
+- `grpcurl` accepts and prints **JSON**, using protobuf's canonical JSON
+  mapping. It is a convenience of the tool, not what goes over the wire — the
+  RPC itself is still binary protobuf.
+- Reflection exposes your whole API surface, so it is usually enabled in dev
+  and staging and left off (or put behind auth) in production.
+- This is also what makes GUI clients like Postman, Insomnia and
+  [grpcui](https://github.com/fullstorydev/grpcui) work against a server with
+  no schema file.
 
 # Bonus: evolving the contract *(optional)*
 
