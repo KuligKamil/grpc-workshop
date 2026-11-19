@@ -25,14 +25,27 @@ PORT = 50051
 HOST = "127.0.0.1"
 
 
-def _wait_for_port(port: int, timeout: float = 45.0) -> bool:
-    """Poll until something accepts connections, or give up."""
+# `poe server*` runs generate-exercises first, which *deletes* the stubs before
+# writing them. A client starting in that window dies with ImportError, so wait
+# for the generated files to be back as well as for the port.
+_STUBS = (
+    WORKSHOP / "exercises" / "generated" / "chat_pb2.py",
+    WORKSHOP / "exercises" / "generated" / "chat_pb2_grpc.py",
+)
+
+
+def _wait_for_server(port: int, timeout: float = 60.0) -> bool:
+    """Poll until the port accepts connections and the stubs exist again."""
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
+        listening = False
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             sock.settimeout(1.0)
-            if sock.connect_ex((HOST, port)) == 0:
-                return True
+            listening = sock.connect_ex((HOST, port)) == 0
+        if listening and all(path.exists() for path in _STUBS):
+            # The import machinery can still be mid-write; give it a moment.
+            time.sleep(0.5)
+            return True
         time.sleep(0.5)
     return False
 
@@ -75,7 +88,7 @@ def main() -> int:
         text=True,
     )
     try:
-        if not _wait_for_port(PORT):
+        if not _wait_for_server(PORT):
             output = ""
             if server.poll() is not None and server.stdout:
                 output = server.stdout.read()
@@ -137,7 +150,7 @@ def main() -> int:
             text=True,
         )
         try:
-            if not _wait_for_port(PORT):
+            if not _wait_for_server(PORT):
                 checks.expect(label, False, "never started listening")
                 continue
             code, out = _run("final-send", "--room", "smoke", "--user", "a", "bcast")
@@ -160,7 +173,7 @@ def main() -> int:
         text=True,
     )
     try:
-        if _wait_for_port(PORT):
+        if _wait_for_server(PORT):
             code, out = _run("client-intercepted")
             checks.expect(
                 "poe client-intercepted",
