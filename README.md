@@ -1074,6 +1074,15 @@ poe client-send --room general --user alice "Hello!"
 # ✓ Sent  id=<uuid>  status=ok
 ```
 
+> **Restart the server after every change to `server.py`.** `poe server` loads
+> your code once at startup, so edits are not picked up by the running process:
+> stop it with Ctrl-C and start it again. If you get `UNIMPLEMENTED` or
+> `INTERNAL` for a method you just wrote, this is almost always why.
+>
+> Restarting also clears `_store`, which lives in memory — the message history
+> from before the restart is gone, so send a few fresh messages before testing
+> `GetHistory`.
+
 ## ✅ Micro-check
 
 Terminal 2 should print something like:
@@ -1433,6 +1442,15 @@ poe client-chat --room general --user alice
 ```
 
 Open `streaming_starter.py` to write your experiments.
+
+> **Restart the server after every change to `server.py`.** `poe server` loads
+> your code once at startup, so edits are not picked up by the running process:
+> stop it with Ctrl-C and start it again. If you get `UNIMPLEMENTED` or
+> `INTERNAL` for a method you just wrote, this is almost always why.
+>
+> Restarting also clears `_store`, which lives in memory — the message history
+> from before the restart is gone, so send a few fresh messages before testing
+> `GetHistory`.
 
 ## ✅ Micro-check
 
