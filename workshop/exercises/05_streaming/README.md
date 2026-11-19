@@ -182,3 +182,96 @@ reached — make sure you're passing the generator object, not calling it
 **Task 3 (Chat)** — `poe client-chat` should echo each typed line back with a
 `←` prefix. If nothing comes back, `Chat` isn't yielding — check that you
 call `_make_message` and `yield` the result.
+
+## Fell behind?
+
+<details>
+
+<summary>Click to view Solution 5-server (complete `server.py`)</summary>
+
+If you fell behind, paste this whole file into `exercises/server.py` — it
+contains all four methods (`SendMessage` from Exercise 3 plus the three
+streaming ones) so you can catch up and continue.
+
+```python
+import uuid
+from concurrent import futures
+
+import grpc
+from google.protobuf.timestamp_pb2 import Timestamp
+from grpc import StatusCode
+
+from exercises.generated import chat_pb2, chat_pb2_grpc
+
+# In-memory message store: room_id → list[Message]
+_store: dict[str, list[chat_pb2.Message]] = {}
+
+
+def _make_message(request: chat_pb2.MessageRequest) -> chat_pb2.Message:
+    timestamp = Timestamp()
+    timestamp.GetCurrentTime()
+    msg = chat_pb2.Message(
+        message_id=str(uuid.uuid4()),
+        room_id=request.room_id,
+        user=request.user,
+        content=request.content,
+        timestamp=timestamp,
+    )
+    _store.setdefault(request.room_id, []).append(msg)
+    return msg
+
+
+class ChatServicer(chat_pb2_grpc.ChatServiceServicer):
+    def SendMessage(self, request, context):
+        """Unary — one request in, one response out (Exercise 03)."""
+        if not request.content:
+            context.abort(
+                StatusCode.INVALID_ARGUMENT, "Message content cannot be empty"
+            )
+        msg = _make_message(request)
+        return chat_pb2.MessageResponse(
+            message_id=msg.message_id,
+            status="ok",
+            timestamp=msg.timestamp,
+        )
+
+    def GetHistory(self, request, context):
+        """Server streaming — one request in, many responses out."""
+        messages = _store.get(request.room_id, [])
+        # proto3 default: limit == 0 means "not provided" → return everything.
+        limit = request.limit if request.limit > 0 else len(messages)
+        for msg in messages[-limit:]:
+            yield msg
+
+    def SendBulkMessages(self, request_iterator, context):
+        """Client streaming — many requests in, one response out."""
+        sent = 0
+        failed = 0
+        for request in request_iterator:
+            if not request.content:
+                failed += 1
+                continue
+            _make_message(request)
+            sent += 1
+        return chat_pb2.BulkResponse(messages_sent=sent, messages_failed=failed)
+
+    def Chat(self, request_iterator, context):
+        """Bidirectional streaming — replies interleave with requests."""
+        for request in request_iterator:
+            msg = _make_message(request)
+            yield msg
+
+
+def serve(port: int = 50051) -> None:
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    chat_pb2_grpc.add_ChatServiceServicer_to_server(ChatServicer(), server)
+    server.add_insecure_port(f"[::]:{port}")
+    try:
+        server.start()
+        print(f"gRPC server listening on :{port}")
+        server.wait_for_termination()
+    finally:
+        server.stop(grace=5)
+```
+
+</details>
