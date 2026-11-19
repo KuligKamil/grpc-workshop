@@ -78,12 +78,21 @@ def demo_bidirectional(stub: chat_pb2_grpc.ChatServiceStub) -> None:
 
 
 def main():
+    # Each demo runs independently, so an unfinished one does not stop the
+    # rest: you can work through them in any order.
+    demos = (
+        demo_unary,
+        demo_server_streaming,
+        demo_client_streaming,
+        demo_bidirectional,
+    )
     with grpc.insecure_channel(CHANNEL) as channel:
         stub = chat_pb2_grpc.ChatServiceStub(channel)
-        demo_unary(stub)
-        demo_server_streaming(stub)
-        demo_client_streaming(stub)
-        demo_bidirectional(stub)
+        for demo in demos:
+            try:
+                demo(stub)
+            except Exception as error:  # noqa: BLE001 — keep the other demos running
+                print(f"  [{demo.__name__} not finished yet: {error!r}]")
 
 
 if __name__ == "__main__":

@@ -180,6 +180,10 @@ is not on `PATH`.
 
 Open `streaming_starter.py` to write your experiments.
 
+`poe starter-05` runs each demo independently: an unfinished one prints
+`[demo_... not finished yet: ...]` and the others still run, so you can tackle
+the three tasks in any order.
+
 ## Verify
 
 Run just this exercise's tests (regenerates the stubs first):

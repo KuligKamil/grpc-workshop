@@ -1458,6 +1458,10 @@ poe client-chat --room general --user alice
 
 Open `streaming_starter.py` to write your experiments.
 
+`poe starter-05` runs each demo independently: an unfinished one prints
+`[demo_... not finished yet: ...]` and the others still run, so you can tackle
+the three tasks in any order.
+
 > **Restart the server after every change to `server.py`.** `poe server` loads
 > your code once at startup, so edits are not picked up by the running process:
 > stop it with Ctrl-C and start it again. If you get `UNIMPLEMENTED` or
