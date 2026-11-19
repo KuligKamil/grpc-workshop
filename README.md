@@ -685,6 +685,19 @@ docker compose run --rm workshop <poe command>
 >
 > Or run the client on your host (`uv run poe client-send ...`), which reaches the
 > server through the published port `localhost:50051`.
+>
+> **Starter scripts with Docker (Exercises 4–6):** `starter-04`, `starter-05` and
+> `starter-06` connect to `localhost:50051` by design — that is what you are
+> learning to write — so they must run *inside* the server container:
+>
+> ```bash
+> docker compose up server                            # terminal 1
+> docker compose exec server uv run poe starter-04    # terminal 2
+> ```
+>
+> Note the `uv run`: `docker compose exec` skips the image entrypoint, and the
+> virtualenv lives in `/opt/venv` outside `PATH`, so a bare `poe starter-04`
+> fails with `executable file not found`.
 2. **use uv**
 ```bash
 uv run <poe command>
