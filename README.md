@@ -32,7 +32,7 @@ uv sync
 poe test-exercises
 ```
 
-If you see 33 failed, 3 passed tests. Everything is ok. The tests are designed to fail until you implement the solution.
+If you see 34 failed, 3 passed tests. Everything is ok. The tests are designed to fail until you implement the solution.
 
 To run the tests for a single exercise instead of all of them, use
 `poe test-01` … `poe test-07` (each regenerates the stubs first).
@@ -1505,6 +1505,29 @@ def SendBulkMessages(self, request_iterator, context):
         sent += 1
     return chat_pb2.BulkResponse(messages_sent=sent, messages_failed=0)
 ```
+
+**Now earn the second field.** `BulkResponse` has `messages_failed`, and
+hardcoding it to `0` makes it a lie. Count the bad ones instead: skip requests
+with empty `content` (the same rule `SendMessage` enforces) and report them.
+
+```python
+sent = 0
+failed = 0
+for request in request_iterator:
+    if not request.content:
+        failed += 1
+        continue
+    _make_message(request)
+    sent += 1
+return chat_pb2.BulkResponse(messages_sent=sent, messages_failed=failed)
+```
+
+Note the difference in *how the error is reported*: unary `SendMessage` aborts
+the whole call with `INVALID_ARGUMENT`, because there is one request and one
+response. Here one bad message out of fifty should not throw away the other
+forty-nine, so the call succeeds and the response carries the count. Choosing
+per-item reporting over a call-level error is a normal design decision in
+client-streaming APIs.
 
 Client side — pass a **generator** as the argument:
 
