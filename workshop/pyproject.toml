@@ -21,7 +21,7 @@ dev = [
 ]
 
 [tool.poe.tasks]
-test-exercises = { shell = "poe generate-exercises && pytest tests/exercises/ -v" }
+test-exercises = { sequence = [{ ref = "generate-exercises" }, { cmd = "pytest tests/exercises/ -v" }], help = "Run all exercise tests" }
 test-01 = { sequence = [{ ref = "generate-exercises" }, { cmd = "pytest tests/exercises/test_01_proto.py -v" }], help = "Run only the Exercise 01 tests" }
 test-02 = { sequence = [{ ref = "generate-exercises" }, { cmd = "pytest tests/exercises/test_02_service_stub.py -v" }], help = "Run only the Exercise 02 tests" }
 test-03 = { sequence = [{ ref = "generate-exercises" }, { cmd = "pytest tests/exercises/test_03_unary_service.py -v" }], help = "Run only the Exercise 03 tests" }
@@ -89,8 +89,9 @@ sequence = [
 [tool.ruff]
 line-length = 88
 target-version = "py313"
-# Generated protobuf/gRPC code is not ours to lint.
-exclude = ["exercises/generated"]
+# Generated protobuf/gRPC code is not ours to lint, and .venv is listed
+# explicitly because ruff only skips it via .gitignore inside a git checkout.
+exclude = ["exercises/generated", ".venv"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I"]
