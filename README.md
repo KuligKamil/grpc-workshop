@@ -1276,7 +1276,9 @@ if __name__ == "__main__":
 
 ## Goal
 
-Extend the server with all four communication patterns and test each one from the client.
+Complete all four communication patterns on the server by adding the three
+streaming ones — unary `SendMessage` is already done in Exercise 3 — and test
+each from the client.
 
 This exercise has three required parts:
 - server streaming (`GetHistory`)
@@ -1742,6 +1744,39 @@ You should see output similar to:
 ```
 
 If deadline shows `UNAVAILABLE`, check that your call uses `wait_for_ready=True`.
+
+## Bonus — cancellation
+
+The directory is named `..._cancellation_...`, so here is the part the two
+tasks above don't cover: who stops a call that is still running.
+
+**Client side** — a streaming call returns a call object, not just an iterator,
+and it has `.cancel()`:
+
+```python
+call = stub.GetHistory(chat_pb2.HistoryRequest(room_id="general", limit=0))
+for message in call:
+    print(message.content)
+    call.cancel()        # stop after the first one
+    break
+```
+
+Iterating the call afterwards raises `grpc.RpcError` with
+`StatusCode.CANCELLED`. Note that `.future()` exists only for *unary* calls —
+streaming calls give you `.cancel()` on the call object itself.
+
+**Server side** — the servicer can notice that nobody is listening any more:
+
+```python
+def GetHistory(self, request, context):
+    for message in _store.get(request.room_id, []):
+        if not context.is_active():     # client went away
+            return
+        yield message
+```
+
+`context.add_callback(fn)` registers `fn` to run when the call ends, however it
+ends — the usual place to release per-call resources.
 
 ## Solution
 
