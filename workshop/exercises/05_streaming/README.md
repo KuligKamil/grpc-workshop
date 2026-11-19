@@ -149,6 +149,10 @@ poe client-send --room general --user alice "second"
 # Server streaming — get history
 poe client-history --room general --limit 5
 
+# Client streaming — send 5 messages in one call, then read them back
+poe client-bulk --room general --count 5
+poe client-history --room general --limit 10
+
 # Bidirectional chat (interactive)
 poe client-chat --room general --user alice
 ```
