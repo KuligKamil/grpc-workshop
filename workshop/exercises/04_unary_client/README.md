@@ -1,5 +1,7 @@
 # Exercise 4: Unary Client + Verify Communication
 
+**Estimated time:** ~10 min
+
 ## Goal
 
 Write a client that calls `SendMessage` and see both sides talk to each other.

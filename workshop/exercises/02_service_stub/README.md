@@ -1,5 +1,7 @@
 # Exercise 2: Build a Service Stub 
 
+**Estimated time:** ~10 min
+
 ## Goal
 
 Add the `ChatServicer` method stubs — the Python object that will handle
