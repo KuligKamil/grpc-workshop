@@ -2,7 +2,9 @@
 
 ## Goal
 
-Extend the server with all four communication patterns and test each one from the client.
+Complete all four communication patterns on the server by adding the three
+streaming ones — unary `SendMessage` is already done in Exercise 3 — and test
+each from the client.
 
 This exercise has three required parts:
 - server streaming (`GetHistory`)
