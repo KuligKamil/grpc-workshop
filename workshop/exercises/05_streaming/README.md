@@ -179,7 +179,9 @@ each one back:
 
 If it prints nothing, the room name in `HistoryRequest` doesn't match the one
 you sent to — double-check `room_id`.
-If you get `UNIMPLEMENTED`, `GetHistory` is still `pass` in `server.py`.
+If you get `UNKNOWN: Exception iterating responses: 'NoneType' object is not
+an iterator`, `GetHistory` is still `pass` in `server.py` — a streaming method
+has to `yield`. `UNIMPLEMENTED` would mean the method is missing altogether.
 
 **Task 2 (SendBulkMessages)** — `poe starter-05` should print:
 
