@@ -84,6 +84,9 @@ discord: kamilkulig
 
 Times are rough: about 1h45 of exercises in total, excluding the bonuses.
 
+Optional bonuses, if there is time: cancellation (in Exercise 6) and
+[evolving the contract](#bonus-evolving-the-contract-optional) (~10 min).
+
 ---
 
 # What is gRPC (recursive acronym for gRPC Remote Procedure Calls)?
@@ -2237,6 +2240,76 @@ if __name__ == "__main__":
 ```
 
 </details>
+
+# Bonus: evolving the contract *(optional)*
+
+**Estimated time:** ~10 min
+
+A `.proto` file is a contract between programs you deploy at different times.
+Protobuf is built so you can extend it without a flag day — if you follow two
+rules.
+
+## Adding a field is safe
+
+Add a sixth field to `Message` in `chat.proto`:
+
+```proto
+message Message {
+  string message_id = 1;
+  string room_id    = 2;
+  string user       = 3;
+  string content    = 4;
+  google.protobuf.Timestamp timestamp = 5;
+  string reply_to   = 6;   // new
+}
+```
+
+Regenerate (`poe generate-exercises`) and restart the server. A client built
+against the *old* schema keeps working: it parses the new messages fine and
+ignores field 6, because the wire format is field *numbers* plus types, not
+names or order. Unknown fields are simply skipped.
+
+Even better, a decoder that does not know a field **preserves it**. Serializing
+a message that an old client parsed and re-sent still carries `reply_to`
+through untouched — verified: 31 bytes in, 31 bytes out, `reply_to` intact on
+the other side. That is what makes proxies and older intermediaries safe.
+
+This is also why the old client reads `reply_to` as `""` rather than failing:
+see [proto3 default values](#proto3-default-values) — "absent" and "empty" are
+the same thing for a scalar.
+
+## What breaks the contract
+
+The field *number* is the identity. So:
+
+- **Never renumber or reuse a number.** Changing `content = 4` to
+  `content = 7` makes every deployed client read a different field. Reusing a
+  retired number is worse: old senders fill it with the old meaning and the new
+  code silently misreads it — the data looks plausible and is wrong.
+- **Renaming a field is fine on the wire** (it is just the generated Python
+  attribute that changes), but it breaks your source and anything using JSON
+  mapping.
+- **Changing a type is usually breaking.** `int32` to `string` reinterprets the
+  bytes.
+
+When you remove a field, retire its number with `reserved` so nobody can
+reuse it by accident:
+
+```proto
+message Message {
+  reserved 4;               // was: content
+  reserved "content";       // also block the name
+  string message_id = 1;
+  // ...
+}
+```
+
+`protoc` then rejects any attempt to use number 4 or the name `content` in this
+message — a compile-time error instead of a production mystery.
+
+> **Try it:** add `reply_to`, regenerate, and run `poe final-send` with a client
+> you *did not* regenerate. Then try giving `content` the number 7 and watch a
+> message sent by the old client arrive empty.
 
 # Common mistakes / Troubleshooting
 
