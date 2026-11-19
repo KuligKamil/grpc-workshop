@@ -1437,6 +1437,10 @@ poe client-chat --room general --user alice
 
 Open `streaming_starter.py` to write your experiments.
 
+`poe starter-05` runs each demo independently: an unfinished one prints
+`[demo_... not finished yet: ...]` and the others still run, so you can tackle
+the three tasks in any order.
+
 ## ✅ Micro-check
 
 **Task 1 (GetHistory)** — after sending a few messages, history should stream
