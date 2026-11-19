@@ -31,6 +31,23 @@ poe lint                 # ruff
 On a clean checkout `poe test-exercises` reports **34 failed, 3 passed** — the
 tests are written to fail until you implement each exercise.
 
+## Maintainer scripts
+
+`infrastructure/` holds two scripts CI uses, handy when changing the material:
+
+```bash
+# Paste every "Click to view Solution" block from the README into its file,
+# to check the published solutions still work.
+python infrastructure/apply_readme_solutions.py
+
+# Start each server and run the poe client commands against it. The test
+# suite builds servers in-process, so only this exercises `poe server` plus
+# the CLI tasks — the path participants take first.
+python infrastructure/smoke_test.py
+```
+
+Run them in a scratch copy: the first one overwrites the exercise files.
+
 ## Setup
 
 ```bash
