@@ -8,7 +8,6 @@ import grpc
 import pytest
 from grpc import StatusCode
 
-
 pytest.importorskip(
     "exercises.generated.chat_pb2",
     reason="Complete Exercise 01 and run: poe generate-exercises",

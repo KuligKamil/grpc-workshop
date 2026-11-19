@@ -24,6 +24,14 @@ source .venv/bin/activate
 poe test-exercises
 ```
 
+On Windows, activate the virtualenv with PowerShell instead:
+
+```powershell
+uv sync
+.venv\Scripts\Activate.ps1
+poe test-exercises
+```
+
 If you see 33 failed, 3 passed tests. Everything is ok. The tests are designed to fail until you implement the solution.
 
 ---
@@ -651,30 +659,6 @@ message OrderStatusUpdate {
   
 
 ---
-
-# Project Setup
-
-![alt text](assets/qrcode_github.com.png)
-
-```bash
-git clone https://github.com/KuligKamil/grpc-workshop/
-```
-
-
-```bash
-# Clone & enter workshop
-cd workshop
-
-# run test-exercises
-docker compose run --rm workshop poe test-exercises
-
-# Or create virtualenv and install deps and run
-uv sync
-source .venv/bin/activate
-poe test-exercises
-```
-
-
 
 # How to prepare for the workshop
 

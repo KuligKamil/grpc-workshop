@@ -9,7 +9,7 @@ Then run this script:
 
 import grpc
 
-from exercises.generated import chat_pb2, chat_pb2_grpc
+from exercises.generated import chat_pb2_grpc
 
 EXERCISE_SERVER = "localhost:50051"
 UNREACHABLE_SERVER = "localhost:50099"

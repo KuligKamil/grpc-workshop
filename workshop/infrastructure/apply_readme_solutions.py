@@ -67,7 +67,7 @@ def main() -> int:
     # Exercise 7's client is also the CLI used by poe client-* tasks.
     cli = WORKSHOP / "exercises/client.py"
     cli.write_text(solutions["7"], encoding="utf-8")
-    print(f"Solution 7 -> exercises/client.py")
+    print("Solution 7 -> exercises/client.py")
     return 0
 
 

@@ -81,10 +81,19 @@ sequence = [
 
 [tool.ruff]
 line-length = 88
-target-version = "py312"
+target-version = "py313"
+# Generated protobuf/gRPC code is not ours to lint.
+exclude = ["exercises/generated"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I"]
+
+[tool.ruff.lint.per-file-ignores]
+# Starter scripts intentionally assign variables the participant has yet to
+# use — the unused binding is the exercise, not a defect.
+"exercises/04_unary_client/client_starter.py" = ["F841"]
+"exercises/05_streaming/streaming_starter.py" = ["F841"]
+"exercises/06_deadlines_cancellation_errors/deadlines_starter.py" = ["F841"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests/exercises"]

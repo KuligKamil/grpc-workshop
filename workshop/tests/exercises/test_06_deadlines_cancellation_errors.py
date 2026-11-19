@@ -50,7 +50,9 @@ def test_starter_demo_deadline_exceeded_prints_code(capsys):
     )
 
 
-def test_starter_demo_invalid_argument_prints_code_and_details(grpc_addr, capsys, monkeypatch):
+def test_starter_demo_invalid_argument_prints_code_and_details(
+    grpc_addr, capsys, monkeypatch
+):
     """demo_invalid_argument() should print both the code and the details."""
     starter = _load_starter()
 
