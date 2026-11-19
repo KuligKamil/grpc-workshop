@@ -3,6 +3,7 @@ __pycache__/
 *.pyc
 *.pyo
 .pytest_cache/
-exercises/generated/*
+**/exercises/generated/*
+!**/exercises/generated/__init__.py
 *.egg-info/
 dist/
