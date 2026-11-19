@@ -2074,6 +2074,102 @@ def chat(
 
 </details>
 
+# Common mistakes / Troubleshooting
+
+Things that bite people during this workshop, and what they look like.
+
+### `Address already in use` when starting the server
+
+An old server is still running on port 50051 (often a forgotten terminal, or a
+Docker `server` container).
+
+```bash
+# macOS / Linux — find and stop whatever holds the port
+lsof -i :50051
+kill <pid>
+
+# Docker
+docker compose down
+
+# Or just use a different port
+poe server --port 50052
+```
+
+### `ModuleNotFoundError: No module named 'exercises.generated.chat_pb2'`
+
+The generated code does not exist yet. Finish Exercise 1, then:
+
+```bash
+poe generate-exercises
+```
+
+The tests skip themselves with a reminder when this is missing, so a pile of
+skipped tests means the same thing.
+
+### You changed `chat.proto` but nothing changed
+
+The generated stubs are built from `chat.proto`, so they have to be rebuilt:
+
+```bash
+poe generate-exercises
+```
+
+`poe server` now does this for you on every start — but if you import the
+generated module in an already-running process (a REPL, a long-lived script),
+restart that too.
+
+### `UNIMPLEMENTED` vs `INTERNAL` / `UNKNOWN`
+
+| What you see | What it means |
+|---|---|
+| `UNIMPLEMENTED: Method not implemented!` | gRPC never found your method — it is missing from `ChatServicer`, or the name is misspelled (they are case-sensitive: `SendMessage`, not `send_message`) |
+| `INTERNAL: Failed to serialize response!` | your unary method ran but returned `None` — you have not returned a response message yet |
+| `UNKNOWN: Exception iterating responses: 'NoneType' object is not an iterator` | your streaming method ran but never `yield`ed |
+
+### Edits to `server.py` seem to be ignored
+
+`poe server` loads your code once at startup. Stop it (Ctrl-C) and start it
+again. Restarting also clears the in-memory `_store`, so earlier messages are
+gone.
+
+### `GetHistory` returns nothing
+
+Room names are plain strings and must match exactly. If you sent to `general`
+and ask for `demo`, you correctly get an empty stream. Also remember the
+in-memory store is empty after every server restart.
+
+### `messages` instead of `messages()`
+
+Client-streaming and bidirectional calls take an *iterator*, so you must call
+your generator function:
+
+```python
+stub.SendBulkMessages(messages())   # correct — passes the generator object
+stub.SendBulkMessages(messages)     # wrong — passes the function itself
+```
+
+The second form fails with `UNKNOWN: Exception iterating requests!` — gRPC got
+a function where it expected something to iterate over.
+
+### Docker: the client cannot reach the server over `localhost`
+
+Every `docker compose run` starts its own container, and `localhost` inside it
+means that container, not your host or the server container.
+
+```bash
+# Server in one terminal
+docker compose up server
+
+# Clients: address the service by name
+docker compose run --rm workshop poe client-send --host server "Hello"
+
+# Starter scripts hardcode localhost:50051, so run them inside the server container
+docker compose exec server uv run poe starter-04
+```
+
+`uv run` is required with `exec`, because `exec` skips the image entrypoint and
+the virtualenv in `/opt/venv` is not on `PATH`.
+
 # Next
 
 - **Metadata** — key-value headers sent with every call (like HTTP headers); standard way to pass auth tokens, request IDs, or tracing context without touching the proto schema.
