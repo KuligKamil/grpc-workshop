@@ -45,3 +45,9 @@ def test_message_has_all_five_fields():
     assert msg.user == "u"
     assert msg.content == "c"
     assert msg.timestamp == ts
+
+
+def test_bulk_response_has_correct_fields():
+    msg = chat_pb2.BulkResponse(messages_sent=5, messages_failed=2)
+    assert msg.messages_sent == 5
+    assert msg.messages_failed == 2
