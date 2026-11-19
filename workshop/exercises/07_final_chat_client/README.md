@@ -86,6 +86,16 @@ poe client-history --room general --limit 5
 poe client-chat --room general --user alice
 ```
 
+## Verify
+
+Run just this exercise's tests (regenerates the stubs first):
+
+```bash
+poe test-07
+```
+
+`poe test-exercises` runs all of them.
+
 ## ✅ Micro-check
 
 You should see:

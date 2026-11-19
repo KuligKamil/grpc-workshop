@@ -169,6 +169,16 @@ is not on `PATH`.
 
 Open `streaming_starter.py` to write your experiments.
 
+## Verify
+
+Run just this exercise's tests (regenerates the stubs first):
+
+```bash
+poe test-05
+```
+
+`poe test-exercises` runs all of them.
+
 ## ✅ Micro-check
 
 **Task 1 (GetHistory)** — after sending a few messages, history should stream

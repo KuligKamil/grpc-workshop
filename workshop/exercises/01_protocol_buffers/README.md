@@ -34,6 +34,14 @@ poe generate-exercises
 # No errors → exercises/generated/ updated
 ```
 
+Then run just this exercise's tests:
+
+```bash
+poe test-01
+```
+
+`poe test-exercises` runs all of them.
+
 ## ✅ Micro-check
 
 After `poe generate-exercises` you should see **no errors** on the terminal and

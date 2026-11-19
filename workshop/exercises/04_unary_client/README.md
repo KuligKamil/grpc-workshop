@@ -56,6 +56,16 @@ is not on `PATH`.
 
 Try sending an empty message — what error code do you get?
 
+## Verify
+
+Run just this exercise's tests (regenerates the stubs first):
+
+```bash
+poe test-04
+```
+
+`poe test-exercises` runs all of them.
+
 ## ✅ Micro-check
 
 Your script should print two lines, for example:

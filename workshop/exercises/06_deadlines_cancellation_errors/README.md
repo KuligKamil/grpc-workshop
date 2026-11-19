@@ -111,6 +111,16 @@ def GetHistory(self, request, context):
 `context.add_callback(fn)` registers `fn` to run when the call ends, however it
 ends — the usual place to release per-call resources.
 
+## Verify
+
+Run just this exercise's tests (regenerates the stubs first):
+
+```bash
+poe test-06
+```
+
+`poe test-exercises` runs all of them.
+
 ## ✅ Micro-check
 
 You should see output similar to:
