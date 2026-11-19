@@ -60,6 +60,16 @@ Then try the failure path: change `content` in `client_starter.py` to `""`,
 run `poe starter-04` again — what error code do you get? (Exercise 3 made the
 server reject it.) Set it back to a real message afterwards.
 
+## Verify
+
+Run just this exercise's tests (regenerates the stubs first):
+
+```bash
+poe test-04
+```
+
+`poe test-exercises` runs all of them.
+
 ## ✅ Micro-check
 
 Your script should print two lines, for example:

@@ -99,6 +99,16 @@ poe final-chat --room general --user alice
 > server in Exercises 3–5. The `final-*` tasks run **your** client, so you can
 > compare the two side by side.
 
+## Verify
+
+Run just this exercise's tests (regenerates the stubs first):
+
+```bash
+poe test-07
+```
+
+`poe test-exercises` runs all of them.
+
 ## ✅ Micro-check
 
 You should see:

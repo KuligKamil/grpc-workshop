@@ -22,6 +22,13 @@ dev = [
 
 [tool.poe.tasks]
 test-exercises = { shell = "poe generate-exercises && pytest tests/exercises/ -v" }
+test-01 = { sequence = [{ ref = "generate-exercises" }, { cmd = "pytest tests/exercises/test_01_proto.py -v" }], help = "Run only the Exercise 01 tests" }
+test-02 = { sequence = [{ ref = "generate-exercises" }, { cmd = "pytest tests/exercises/test_02_service_stub.py -v" }], help = "Run only the Exercise 02 tests" }
+test-03 = { sequence = [{ ref = "generate-exercises" }, { cmd = "pytest tests/exercises/test_03_unary_service.py -v" }], help = "Run only the Exercise 03 tests" }
+test-04 = { sequence = [{ ref = "generate-exercises" }, { cmd = "pytest tests/exercises/test_04_unary_client.py -v" }], help = "Run only the Exercise 04 tests" }
+test-05 = { sequence = [{ ref = "generate-exercises" }, { cmd = "pytest tests/exercises/test_05_streaming.py -v" }], help = "Run only the Exercise 05 tests" }
+test-06 = { sequence = [{ ref = "generate-exercises" }, { cmd = "pytest tests/exercises/test_06_deadlines_cancellation_errors.py -v" }], help = "Run only the Exercise 06 tests" }
+test-07 = { sequence = [{ ref = "generate-exercises" }, { cmd = "pytest tests/exercises/test_07_final_chat_client.py -v" }], help = "Run only the Exercise 07 tests" }
 lint = "ruff check ."
 fmt = "ruff format ."
 

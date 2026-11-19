@@ -34,6 +34,9 @@ poe test-exercises
 
 If you see 33 failed, 3 passed tests. Everything is ok. The tests are designed to fail until you implement the solution.
 
+To run the tests for a single exercise instead of all of them, use
+`poe test-01` … `poe test-07` (each regenerates the stubs first).
+
 ---
 
 Adam Gorgon -  ML Engineer 

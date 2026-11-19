@@ -82,6 +82,16 @@ poe client-send --room general --user alice "Hello!"
 # ✓ Sent  id=<uuid>  status=ok
 ```
 
+## Verify
+
+Run just this exercise's tests (regenerates the stubs first):
+
+```bash
+poe test-03
+```
+
+`poe test-exercises` runs all of them.
+
 ## ✅ Micro-check
 
 Terminal 2 should print something like:

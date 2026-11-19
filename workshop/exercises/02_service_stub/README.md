@@ -56,6 +56,16 @@ poe server
 The server starts but returns gRPC errors on every call — that's expected.
 We'll add the real logic in Exercise 3.
 
+## Verify
+
+Run just this exercise's tests (regenerates the stubs first):
+
+```bash
+poe test-02
+```
+
+`poe test-exercises` runs all of them.
+
 ## ✅ Micro-check
 
 You should see exactly this line in the terminal:
