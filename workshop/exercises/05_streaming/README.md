@@ -99,7 +99,7 @@ for message in stub.GetHistory(
 def SendBulkMessages(self, request_iterator, context):
     sent = 0
     for request in request_iterator:   # ← iterate the stream
-        _store.setdefault(request.room_id, []).append(...)
+        _make_message(request)   # stores it and returns the saved Message
         sent += 1
     return chat_pb2.BulkResponse(messages_sent=sent, messages_failed=0)
 ```
