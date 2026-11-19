@@ -64,6 +64,18 @@ discord: kamilkulig
 
 3) Exercises
 
+| # | Exercise | Time | Notes |
+|---|----------|------|-------|
+| 1 | Proto Messages | ~10 min | |
+| 2 | Build a Service Stub | ~10 min | |
+| 3 | Implement Unary `SendMessage` | ~15 min | |
+| 4 | Unary Client + Verify Communication | ~10 min | |
+| 5 | Streaming Patterns | ~25 min | 3 required tasks + bonus experiments |
+| 6 | Deadlines and Error Handling | ~15 min | + optional cancellation bonus |
+| 7 | Final Chat Client | ~20 min | ties 5 and 6 together |
+
+Times are rough: about 1h45 of exercises in total, excluding the bonuses.
+
 ---
 
 # What is gRPC (recursive acronym for gRPC Remote Procedure Calls)?
@@ -732,6 +744,8 @@ Neither is required to run the exercises — they only improve static typing and
 
 # Exercise 1: Proto Messages
 
+**Estimated time:** ~10 min
+
 ## Goal
 
 Define the remaining proto messages in `chat.proto`.
@@ -836,6 +850,8 @@ message Message {
 </details>
 
 # Exercise 2: Build a Service Stub 
+
+**Estimated time:** ~10 min
 
 ## Goal
 
@@ -993,6 +1009,8 @@ if __name__ == "__main__":
 </details>
 
 # Exercise 3: Implement Unary SendMessage
+
+**Estimated time:** ~15 min
 
 ## Goal
 
@@ -1186,6 +1204,8 @@ if __name__ == "__main__":
 
 # Exercise 4: Unary Client + Verify Communication
 
+**Estimated time:** ~10 min
+
 ## Goal
 
 Write a client that calls `SendMessage` and see both sides talk to each other.
@@ -1286,6 +1306,8 @@ if __name__ == "__main__":
 
 # Exercise 5: Streaming Patterns 
 
+**Estimated time:** ~25 min
+
 ## Goal
 
 Complete all four communication patterns on the server by adding the three
@@ -1356,6 +1378,11 @@ sequenceDiagram
     C->>S: (half-close)
     S-->>-C: (stream closed)
 ```
+
+> **Required vs bonus:** Tasks 1–3 below are required. `streaming_starter.py`
+> additionally marks a few *bonus* experiments inside `demo_bidirectional`
+> (pausing between yields, signalling half-close, passing a timeout) — skip
+> them if you are short on time and come back later.
 
 ## Required Tasks
 
@@ -1685,6 +1712,8 @@ def serve(port: int = 50051) -> None:
 
 # Exercise 6: Deadlines and Error Handling 
 
+**Estimated time:** ~15 min
+
 ## Goal
 
 Learn how to make gRPC clients more resilient by handling:
@@ -1762,7 +1791,7 @@ You should see output similar to:
 
 If deadline shows `UNAVAILABLE`, check that your call uses `wait_for_ready=True`.
 
-## Bonus — cancellation
+## Bonus — cancellation *(optional)*
 
 The directory is named `..._cancellation_...`, so here is the part the two
 tasks above don't cover: who stops a call that is still running.
@@ -1876,6 +1905,8 @@ if __name__ == "__main__":
 </details>
 
 # Exercise 7: Final Chat Client in `client.py` 
+
+**Estimated time:** ~20 min
 
 ## Goal
 
