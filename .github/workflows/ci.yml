@@ -42,7 +42,7 @@ jobs:
         shell: bash
         run: |
           tail -n 20 test-output.txt
-          expected="33 failed, 3 passed"
+          expected="34 failed, 3 passed"
           if ! grep -q "$expected" test-output.txt; then
             echo "::error::Expected '$expected' on a clean repo."
             echo "The README tells participants what to expect, so either the"
