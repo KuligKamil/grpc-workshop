@@ -709,6 +709,17 @@ source .venv/bin/activate
 <poe command>
 ```
 
+On Windows (PowerShell):
+
+```powershell
+uv sync
+.venv\Scripts\Activate.ps1
+<poe command>
+```
+
+All `poe` tasks are cross-platform (no shell built-ins), so they behave the
+same on Linux, macOS and Windows — CI runs the test suite on all three.
+
 ## Dev dependencies
 
 The `dev` dependency group (installed automatically by `uv sync`) includes two
