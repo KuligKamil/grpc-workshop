@@ -42,6 +42,18 @@ poe starter-04
 #   status:     ok
 ```
 
+**Running with Docker?** `starter-04` connects to `localhost:50051`, so it has to
+run inside the server container:
+
+```bash
+docker compose up server                            # terminal 1
+docker compose exec server uv run poe starter-04    # terminal 2
+```
+
+`uv run` is required: `exec` skips the entrypoint and the venv in `/opt/venv`
+is not on `PATH`.
+
+
 Try sending an empty message — what error code do you get?
 
 ## ✅ Micro-check

@@ -153,6 +153,18 @@ poe client-history --room general --limit 5
 poe client-chat --room general --user alice
 ```
 
+**Running with Docker?** `starter-05` connects to `localhost:50051`, so it has to
+run inside the server container:
+
+```bash
+docker compose up server                            # terminal 1
+docker compose exec server uv run poe starter-05    # terminal 2
+```
+
+`uv run` is required: `exec` skips the entrypoint and the venv in `/opt/venv`
+is not on `PATH`.
+
+
 Open `streaming_starter.py` to write your experiments.
 
 ## ✅ Micro-check
