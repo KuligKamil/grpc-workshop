@@ -78,6 +78,10 @@ jobs:
       - name: Every test must pass
         run: uv run poe test-exercises
 
+      # Participants paste this code and may run `poe lint` on it.
+      - name: The pasted solutions must also be lint-clean
+        run: uv run poe lint
+
   lint:
     name: Lint
     runs-on: ubuntu-latest
