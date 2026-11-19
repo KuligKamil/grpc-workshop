@@ -139,3 +139,15 @@ Wynik końcowy: wszystkie 29 testów przechodzi, więc ścieżka jako całość 
 34. **Nieaktualne w pkt 16: nie ma podwójnego nagłówka „Exercise 7”.**
     W `README.md` jest tylko jeden (`# Exercise 7: Final Chat Client in \`client.py\``, linia 1695).
     Zduplikowana sekcja „Project Setup” (linie 4 i 643) — owszem, jest.
+
+## F. Znalezione przy powtórnym przejściu (na branchu z poprawkami)
+
+35. **`ruff --fix` (z pkt 16) usunął ze starterów importy potrzebne do TODO.**
+    `ruff` uznał `chat_pb2` za nieużywany w `deadlines_starter.py` i w
+    `07_final_chat_client/client.py` — bo w kodzie startowym faktycznie jeszcze
+    nie jest użyty. Uczestnik wypełniający TODO zgodnie z instrukcją dostawał
+    `NameError: name 'chat_pb2' is not defined`.
+    Naprawione: importy przywrócone, a startery mają `F401` w
+    `[tool.ruff.lint.per-file-ignores]`, żeby kolejne `ruff --fix` ich nie zjadło.
+    Wniosek na przyszłość: **nie puszczać `ruff --fix` na pliki startowe** —
+    to, co wygląda tam na martwy kod, jest treścią ćwiczenia.
