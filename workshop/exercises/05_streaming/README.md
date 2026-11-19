@@ -102,6 +102,10 @@ for message in stub.GetHistory(
     print(f"[{message.user}] {message.content}")
 ```
 
+> Remember the proto3 default: `limit` arrives as `0` when the client does not
+> set it, which is why `0` means "all" here. See
+> [proto3 default values](../01_protocol_buffers/README.md#proto3-default-values).
+
 ### Task 2 — Client streaming: `SendBulkMessages`
 
 ```python
