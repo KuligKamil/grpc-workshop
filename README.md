@@ -1243,7 +1243,6 @@ from concurrent import futures
 import grpc
 from google.protobuf.timestamp_pb2 import Timestamp
 from grpc import StatusCode
-
 from grpc_reflection.v1alpha import reflection
 
 from exercises.generated import chat_pb2, chat_pb2_grpc
@@ -1783,7 +1782,6 @@ from concurrent import futures
 import grpc
 from google.protobuf.timestamp_pb2 import Timestamp
 from grpc import StatusCode
-
 from grpc_reflection.v1alpha import reflection
 
 from exercises.generated import chat_pb2, chat_pb2_grpc
