@@ -24,7 +24,7 @@ source .venv/bin/activate
 poe test-exercises
 ```
 
-If you see 26 failed, 4 passed tests. Everything is ok. The tests are designed to fail until you implement the solution.
+If you see 33 failed, 3 passed tests. Everything is ok. The tests are designed to fail until you implement the solution.
 
 ---
 

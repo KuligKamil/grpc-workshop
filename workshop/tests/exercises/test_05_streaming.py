@@ -3,6 +3,11 @@
 Implement GetHistory, SendBulkMessages and Chat in exercises/server.py, then make these pass.
 Run: poe test-exercises
 """
+from __future__ import annotations
+
+import importlib.util
+from pathlib import Path
+
 import pytest
 
 pytest.importorskip(
@@ -10,6 +15,24 @@ pytest.importorskip(
     reason="Complete Exercise 01 and run: poe generate-exercises",
 )
 from exercises.generated import chat_pb2  # noqa: E402
+
+_STARTER_PATH = (
+    Path(__file__).resolve().parents[2]
+    / "exercises"
+    / "05_streaming"
+    / "streaming_starter.py"
+)
+
+
+def _load_starter():
+    """Load the starter script by path (it lives in a non-importable dir)."""
+    spec = importlib.util.spec_from_file_location(
+        "exercise_05_streaming_starter", _STARTER_PATH
+    )
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 def _send(stub, room="test-room", user="alice", content="Hi!"):
@@ -90,3 +113,39 @@ def test_bulk_messages_are_readable_by_get_history(stub):
 
     messages = list(stub.GetHistory(chat_pb2.HistoryRequest(room_id=room, limit=10)))
     assert [m.content for m in messages] == ["bulk 0", "bulk 1", "bulk 2"]
+
+
+def test_starter_demo_server_streaming_prints_history(stub, capsys):
+    """demo_server_streaming() should print the messages it fetched back."""
+    starter = _load_starter()
+    starter.demo_server_streaming(stub)
+
+    out = capsys.readouterr().out
+    assert "msg 0" in out and "msg 2" in out, (
+        "demo_server_streaming() should print each streamed message — got:\n" + out
+    )
+
+
+def test_starter_demo_client_streaming_prints_count(stub, capsys):
+    """demo_client_streaming() should send 5 messages and print the result."""
+    starter = _load_starter()
+    starter.demo_client_streaming(stub)
+
+    out = capsys.readouterr().out
+    assert "5" in out, (
+        "demo_client_streaming() should print how many messages were sent — got:\n"
+        + out
+    )
+
+
+def test_starter_demo_bidirectional_prints_replies(stub, capsys):
+    """demo_bidirectional() should print the replies streamed back."""
+    starter = _load_starter()
+    starter.demo_bidirectional(stub)
+
+    out = capsys.readouterr().out
+    assert out.strip(), "demo_bidirectional() should print the streamed replies"
+    assert "Hi there!" in out, (
+        "demo_bidirectional() should stream the `inputs` and print replies — got:\n"
+        + out
+    )
