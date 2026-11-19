@@ -1232,7 +1232,9 @@ poe starter-04
 #   status:     ok
 ```
 
-Try sending an empty message — what error code do you get?
+Then try the failure path: change `content` in `client_starter.py` to `""`,
+run `poe starter-04` again — what error code do you get? (Exercise 3 made the
+server reject it.) Set it back to a real message afterwards.
 
 ## ✅ Micro-check
 
