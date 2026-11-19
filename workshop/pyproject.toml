@@ -55,6 +55,18 @@ help = "Send several messages in one call (client streaming)"
 cmd = "python -m exercises.main client chat"
 help = "Interactive bidirectional chat"
 
+[tool.poe.tasks.final-send]
+cmd = "python exercises/07_final_chat_client/client.py send"
+help = "Exercise 7: send a message with your final client (unary)"
+
+[tool.poe.tasks.final-history]
+cmd = "python exercises/07_final_chat_client/client.py history"
+help = "Exercise 7: fetch history with your final client (server streaming)"
+
+[tool.poe.tasks.final-chat]
+cmd = "python exercises/07_final_chat_client/client.py chat"
+help = "Exercise 7: interactive chat with your final client (bidirectional)"
+
 [tool.poe.tasks.starter-04]
 cmd = "python exercises/04_unary_client/client_starter.py"
 help = "Run the Exercise 4 client starter"

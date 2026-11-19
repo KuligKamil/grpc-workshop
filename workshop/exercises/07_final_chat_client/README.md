@@ -21,6 +21,12 @@ This exercise combines:
 At this stage, the server already supports all required RPCs.
 Your job is to make the **client CLI complete and resilient**.
 
+> **Heads-up:** `exercises/client.py` is a *finished* reference implementation of
+> this exercise — it is what `poe client-*` has been running all along. If you
+> want to work it out yourself, don't read it until you are done; if you get
+> stuck, it is the answer key.
+
+
 ## Message flow
 
 ```mermaid
@@ -76,17 +82,22 @@ Open `exercises/07_final_chat_client/client.py` and implement these command func
 
 ## Run it
 
-Copy client.py from workshop/exercises/07_final_chat_client/ to workshop/exercises/
+Your client runs straight from `07_final_chat_client/` — nothing to copy:
 
 ```bash
 # Terminal 1
 poe server
 
 # Terminal 2
-poe client-send --room general --user alice "Hello from Exercise 7"
-poe client-history --room general --limit 5
-poe client-chat --room general --user alice
+poe final-send --room general --user alice "Hello from Exercise 7"
+poe final-history --room general --limit 5
+poe final-chat --room general --user alice
 ```
+
+> `poe client-send` / `client-history` / `client-bulk` / `client-chat` stay
+> pointed at `exercises/client.py`, the reference CLI you used to smoke-test the
+> server in Exercises 3–5. The `final-*` tasks run **your** client, so you can
+> compare the two side by side.
 
 ## Verify
 
