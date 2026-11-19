@@ -30,6 +30,7 @@ test-05 = { sequence = [{ ref = "generate-exercises" }, { cmd = "pytest tests/ex
 test-06 = { sequence = [{ ref = "generate-exercises" }, { cmd = "pytest tests/exercises/test_06_deadlines_cancellation_errors.py -v" }], help = "Run only the Exercise 06 tests" }
 test-07 = { sequence = [{ ref = "generate-exercises" }, { cmd = "pytest tests/exercises/test_07_final_chat_client.py -v" }], help = "Run only the Exercise 07 tests" }
 test-08 = { sequence = [{ ref = "generate-exercises" }, { cmd = "pytest tests/exercises/test_08_broadcast_chat.py -v" }], help = "Run only the Exercise 08 (bonus) tests" }
+test-09 = { sequence = [{ ref = "generate-exercises" }, { cmd = "pytest tests/exercises/test_09_metadata_interceptors.py -v" }], help = "Run only the Exercise 09 (bonus) tests" }
 lint = "ruff check ."
 fmt = "ruff format ."
 
@@ -46,6 +47,17 @@ sequence = [
   { cmd = "python exercises/08_broadcast_chat/server_broadcast.py" },
 ]
 help = "Start the Exercise 8 broadcast chat server (bonus)"
+
+[tool.poe.tasks.server-intercepted]
+sequence = [
+  { ref = "generate-exercises" },
+  { cmd = "python exercises/09_metadata_interceptors/interceptors.py --serve" },
+]
+help = "Start the chat server with auth + logging interceptors (bonus)"
+
+[tool.poe.tasks.client-intercepted]
+cmd = "python exercises/09_metadata_interceptors/interceptors.py"
+help = "Run the metadata/interceptor client demo (bonus)"
 
 [tool.poe.tasks.client-send]
 cmd = "python -m exercises.main client send"
