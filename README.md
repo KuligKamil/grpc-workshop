@@ -1440,7 +1440,7 @@ Run your server first:
     poe server
 
 Then run this script:
-    python solutions/05_streaming/streaming.py
+    poe starter-05
 """
 
 import time
