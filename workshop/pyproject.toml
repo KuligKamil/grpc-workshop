@@ -89,11 +89,13 @@ exclude = ["exercises/generated"]
 select = ["E", "F", "W", "I"]
 
 [tool.ruff.lint.per-file-ignores]
-# Starter scripts intentionally assign variables the participant has yet to
-# use — the unused binding is the exercise, not a defect.
-"exercises/04_unary_client/client_starter.py" = ["F841"]
-"exercises/05_streaming/streaming_starter.py" = ["F841"]
-"exercises/06_deadlines_cancellation_errors/deadlines_starter.py" = ["F841"]
+# Starter scripts intentionally leave imports and variables unused: the
+# participant needs them to fill in the TODOs, so `ruff --fix` must not strip
+# them (F401) and an unused binding is the exercise, not a defect (F841).
+"exercises/04_unary_client/client_starter.py" = ["F401", "F841"]
+"exercises/05_streaming/streaming_starter.py" = ["F401", "F841"]
+"exercises/06_deadlines_cancellation_errors/deadlines_starter.py" = ["F401", "F841"]
+"exercises/07_final_chat_client/client.py" = ["F401", "F841"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests/exercises"]
