@@ -47,6 +47,10 @@ help = "Send a single message (unary)"
 cmd = "python -m exercises.main client history"
 help = "Fetch message history (server streaming)"
 
+[tool.poe.tasks.client-bulk]
+cmd = "python -m exercises.main client bulk"
+help = "Send several messages in one call (client streaming)"
+
 [tool.poe.tasks.client-chat]
 cmd = "python -m exercises.main client chat"
 help = "Interactive bidirectional chat"
