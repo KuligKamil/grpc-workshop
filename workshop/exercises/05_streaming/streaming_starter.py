@@ -44,7 +44,7 @@ def demo_client_streaming(stub: chat_pb2_grpc.ChatServiceStub) -> None:
     # hint: use a for loop and chat_pb2.MessageRequest()
     def messages():
         pass
-        
+
     # TODO: call stub.SendBulkMessages(messages()) and print the result
 
 
