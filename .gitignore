@@ -7,3 +7,4 @@ __pycache__/
 !**/exercises/generated/__init__.py
 *.egg-info/
 dist/
+PR_DESCRIPTION.md
