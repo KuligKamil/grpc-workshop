@@ -62,3 +62,7 @@ def chat(
     # 4) iterate stub.Chat(generator) and print replies
     # 5) handle KeyboardInterrupt/EOFError and grpc CANCELLED cleanly
     raise NotImplementedError("Exercise 07: implement chat()")
+
+
+if __name__ == "__main__":
+    app()

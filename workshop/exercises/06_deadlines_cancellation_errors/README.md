@@ -66,6 +66,18 @@ poe server
 poe starter-06
 ```
 
+**Running with Docker?** `starter-06` connects to `localhost:50051`, so it has to
+run inside the server container:
+
+```bash
+docker compose up server                            # terminal 1
+docker compose exec server uv run poe starter-06    # terminal 2
+```
+
+`uv run` is required: `exec` skips the entrypoint and the venv in `/opt/venv`
+is not on `PATH`.
+
+
 ## ✅ Micro-check
 
 You should see output similar to:

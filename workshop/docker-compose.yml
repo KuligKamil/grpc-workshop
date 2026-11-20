@@ -6,7 +6,6 @@ services:
   # Quick-start:
   #   docker compose run --rm workshop bash          # open a shell
   #   docker compose run --rm workshop poe test-exercises
-  #   docker compose run --rm workshop poe test-solutions
   #   docker compose run --rm workshop poe lint
   workshop:
     build:

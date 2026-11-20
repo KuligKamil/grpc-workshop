@@ -27,10 +27,10 @@ fmt = "ruff format ."
 
 [tool.poe.tasks.server]
 sequence = [
-  { shell = "test -f exercises/generated/chat_pb2_grpc.py || poe generate-exercises" },
+  { ref = "generate-exercises" },
   { cmd = "python -m exercises.main server" },
 ]
-help = "Start the gRPC chat server (generating stubs first if missing)"
+help = "Start the gRPC chat server (regenerating stubs from chat.proto first)"
 
 [tool.poe.tasks.client-send]
 cmd = "python -m exercises.main client send"
@@ -40,9 +40,25 @@ help = "Send a single message (unary)"
 cmd = "python -m exercises.main client history"
 help = "Fetch message history (server streaming)"
 
+[tool.poe.tasks.client-bulk]
+cmd = "python -m exercises.main client bulk"
+help = "Send several messages in one call (client streaming)"
+
 [tool.poe.tasks.client-chat]
 cmd = "python -m exercises.main client chat"
 help = "Interactive bidirectional chat"
+
+[tool.poe.tasks.final-send]
+cmd = "python exercises/07_final_chat_client/client.py send"
+help = "Exercise 7: send a message with your final client (unary)"
+
+[tool.poe.tasks.final-history]
+cmd = "python exercises/07_final_chat_client/client.py history"
+help = "Exercise 7: fetch history with your final client (server streaming)"
+
+[tool.poe.tasks.final-chat]
+cmd = "python exercises/07_final_chat_client/client.py chat"
+help = "Exercise 7: interactive chat with your final client (bidirectional)"
 
 [tool.poe.tasks.starter-04]
 cmd = "python exercises/04_unary_client/client_starter.py"
@@ -58,7 +74,7 @@ help = "Run the Exercise 6 deadlines/cancellation starter"
 
 [tool.poe.tasks.generate-exercises]
 sequence = [
-  { shell = "rm -f exercises/generated/*_pb2*.py exercises/generated/*.pyi exercises/generated/__pycache__/* 2>/dev/null || true" },
+  { cmd = "python -c \"import pathlib,shutil; d=pathlib.Path('exercises/generated'); [f.unlink() for p in ('*_pb2*.py','*.pyi') for f in d.glob(p)]; shutil.rmtree(d/'__pycache__', ignore_errors=True)\"" },
   { cmd = "python -m grpc_tools.protoc -I exercises/01_protocol_buffers --python_out=exercises/generated --mypy_out=exercises/generated --mypy_grpc_out=exercises/generated --grpc_python_out=exercises/generated exercises/01_protocol_buffers/chat.proto" },
   { cmd = "python -c \"import pathlib; f=pathlib.Path('exercises/generated/chat_pb2_grpc.py'); f.write_text(f.read_text().replace('import chat_pb2 as chat__pb2', 'from . import chat_pb2 as chat__pb2'))\"" },
 ]
@@ -71,11 +87,11 @@ target-version = "py312"
 select = ["E", "F", "W", "I"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests/exercises", "tests/solutions"]
+testpaths = ["tests/exercises"]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["exercises", "solutions"]
+packages = ["exercises"]

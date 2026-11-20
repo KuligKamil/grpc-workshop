@@ -69,3 +69,24 @@ def test_chat_echoes_messages_back(stub):
     replies = list(stub.Chat(_requests()))
     assert len(replies) == 3
     assert [r.content for r in replies] == inputs
+
+
+def test_bulk_messages_are_readable_by_get_history(stub):
+    """Bulk-uploaded messages must come back out of GetHistory.
+
+    Guards against storing something that is not a Message (e.g. appending
+    a literal `...` to the store): SendBulkMessages still reports success,
+    but GetHistory then fails to serialize the room.
+    """
+    room = "sol-bulk-history"
+
+    def _requests():
+        for i in range(3):
+            yield chat_pb2.MessageRequest(
+                room_id=room, user="alice", content=f"bulk {i}"
+            )
+
+    assert stub.SendBulkMessages(_requests()).messages_sent == 3
+
+    messages = list(stub.GetHistory(chat_pb2.HistoryRequest(room_id=room, limit=10)))
+    assert [m.content for m in messages] == ["bulk 0", "bulk 1", "bulk 2"]

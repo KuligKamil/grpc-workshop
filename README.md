@@ -24,7 +24,7 @@ source .venv/bin/activate
 poe test-exercises
 ```
 
-If you see 25 failed, 4 passed tests. Everything is ok. The tests are designed to fail until you implement the solution.
+If you see 26 failed, 4 passed tests. Everything is ok. The tests are designed to fail until you implement the solution.
 
 ---
 
@@ -685,6 +685,19 @@ docker compose run --rm workshop <poe command>
 >
 > Or run the client on your host (`uv run poe client-send ...`), which reaches the
 > server through the published port `localhost:50051`.
+>
+> **Starter scripts with Docker (Exercises 4–6):** `starter-04`, `starter-05` and
+> `starter-06` connect to `localhost:50051` by design — that is what you are
+> learning to write — so they must run *inside* the server container:
+>
+> ```bash
+> docker compose up server                            # terminal 1
+> docker compose exec server uv run poe starter-04    # terminal 2
+> ```
+>
+> Note the `uv run`: `docker compose exec` skips the image entrypoint, and the
+> virtualenv lives in `/opt/venv` outside `PATH`, so a bare `poe starter-04`
+> fails with `executable file not found`.
 2. **use uv**
 ```bash
 uv run <poe command>
@@ -1340,7 +1353,7 @@ for message in stub.GetHistory(
 def SendBulkMessages(self, request_iterator, context):
     sent = 0
     for request in request_iterator:   # ← iterate the stream
-        _store.setdefault(request.room_id, []).append(...)
+        _make_message(request)   # stores it and returns the saved Message
         sent += 1
     return chat_pb2.BulkResponse(messages_sent=sent, messages_failed=0)
 ```
@@ -1389,6 +1402,10 @@ poe client-send --room general --user alice "second"
 
 # Server streaming — get history
 poe client-history --room general --limit 5
+
+# Client streaming — send 5 messages in one call, then read them back
+poe client-bulk --room general --count 5
+poe client-history --room general --limit 10
 
 # Bidirectional chat (interactive)
 poe client-chat --room general --user alice
@@ -1440,7 +1457,7 @@ Run your server first:
     poe server
 
 Then run this script:
-    python solutions/05_streaming/streaming.py
+    poe starter-05
 """
 
 import time
@@ -1532,6 +1549,98 @@ if __name__ == "__main__":
 ```
 
 </details>
+
+<details>
+
+<summary>Click to view Solution 5-server (complete `server.py`)</summary>
+
+If you fell behind, paste this whole file into `exercises/server.py` — it
+contains all four methods (`SendMessage` from Exercise 3 plus the three
+streaming ones) so you can catch up and continue.
+
+```python
+import uuid
+from concurrent import futures
+
+import grpc
+from google.protobuf.timestamp_pb2 import Timestamp
+from grpc import StatusCode
+
+from exercises.generated import chat_pb2, chat_pb2_grpc
+
+# In-memory message store: room_id → list[Message]
+_store: dict[str, list[chat_pb2.Message]] = {}
+
+
+def _make_message(request: chat_pb2.MessageRequest) -> chat_pb2.Message:
+    timestamp = Timestamp()
+    timestamp.GetCurrentTime()
+    msg = chat_pb2.Message(
+        message_id=str(uuid.uuid4()),
+        room_id=request.room_id,
+        user=request.user,
+        content=request.content,
+        timestamp=timestamp,
+    )
+    _store.setdefault(request.room_id, []).append(msg)
+    return msg
+
+
+class ChatServicer(chat_pb2_grpc.ChatServiceServicer):
+    def SendMessage(self, request, context):
+        """Unary — one request in, one response out (Exercise 03)."""
+        if not request.content:
+            context.abort(
+                StatusCode.INVALID_ARGUMENT, "Message content cannot be empty"
+            )
+        msg = _make_message(request)
+        return chat_pb2.MessageResponse(
+            message_id=msg.message_id,
+            status="ok",
+            timestamp=msg.timestamp,
+        )
+
+    def GetHistory(self, request, context):
+        """Server streaming — one request in, many responses out."""
+        messages = _store.get(request.room_id, [])
+        # proto3 default: limit == 0 means "not provided" → return everything.
+        limit = request.limit if request.limit > 0 else len(messages)
+        for msg in messages[-limit:]:
+            yield msg
+
+    def SendBulkMessages(self, request_iterator, context):
+        """Client streaming — many requests in, one response out."""
+        sent = 0
+        failed = 0
+        for request in request_iterator:
+            if not request.content:
+                failed += 1
+                continue
+            _make_message(request)
+            sent += 1
+        return chat_pb2.BulkResponse(messages_sent=sent, messages_failed=failed)
+
+    def Chat(self, request_iterator, context):
+        """Bidirectional streaming — replies interleave with requests."""
+        for request in request_iterator:
+            msg = _make_message(request)
+            yield msg
+
+
+def serve(port: int = 50051) -> None:
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    chat_pb2_grpc.add_ChatServiceServicer_to_server(ChatServicer(), server)
+    server.add_insecure_port(f"[::]:{port}")
+    try:
+        server.start()
+        print(f"gRPC server listening on :{port}")
+        server.wait_for_termination()
+    finally:
+        server.stop(grace=5)
+```
+
+</details>
+
 
 # Exercise 6: Deadlines and Error Handling 
 
@@ -1630,9 +1739,9 @@ Run your solution server first:
 
 import grpc
 
-from solutions.generated import chat_pb2, chat_pb2_grpc
+from exercises.generated import chat_pb2, chat_pb2_grpc
 
-SOLUTION_SERVER = "localhost:50051"
+EXERCISE_SERVER = "localhost:50051"
 UNREACHABLE_SERVER = "localhost:50099"
 
 
@@ -1663,7 +1772,7 @@ def demo_deadline_exceeded() -> grpc.StatusCode:
 
 def demo_invalid_argument() -> grpc.StatusCode:
     print("\n[Error]")
-    with grpc.insecure_channel(SOLUTION_SERVER) as channel:
+    with grpc.insecure_channel(EXERCISE_SERVER) as channel:
         stub = chat_pb2_grpc.ChatServiceStub(channel)
         try:
             stub.SendMessage(
@@ -1712,6 +1821,12 @@ This exercise combines:
 
 At this stage, the server already supports all required RPCs.
 Your job is to make the **client CLI complete and resilient**.
+
+> **Heads-up:** `exercises/client.py` is a *finished* reference implementation of
+> this exercise — it is what `poe client-*` has been running all along. If you
+> want to work it out yourself, don't read it until you are done; if you get
+> stuck, it is the answer key.
+
 
 ## Message flow
 
@@ -1768,17 +1883,22 @@ Open `exercises/07_final_chat_client/client.py` and implement these command func
 
 ## Run it
 
-Copy client.py from workshop/exercises/07_final_chat_client/ to workshop/exercises/
+Your client runs straight from `07_final_chat_client/` — nothing to copy:
 
 ```bash
 # Terminal 1
 poe server
 
 # Terminal 2
-poe client-send --room general --user alice "Hello from Exercise 7"
-poe client-history --room general --limit 5
-poe client-chat --room general --user alice
+poe final-send --room general --user alice "Hello from Exercise 7"
+poe final-history --room general --limit 5
+poe final-chat --room general --user alice
 ```
+
+> `poe client-send` / `client-history` / `client-bulk` / `client-chat` stay
+> pointed at `exercises/client.py`, the reference CLI you used to smoke-test the
+> server in Exercises 3–5. The `final-*` tasks run **your** client, so you can
+> compare the two side by side.
 
 ## ✅ Micro-check
 
@@ -1809,7 +1929,7 @@ If `chat` never prints replies, verify you are iterating `stub.Chat(...)`.
 import grpc
 import typer
 
-from solutions.generated import chat_pb2, chat_pb2_grpc
+from exercises.generated import chat_pb2, chat_pb2_grpc
 
 app = typer.Typer(help="Chat service client")
 
@@ -1886,6 +2006,10 @@ def chat(
         except grpc.RpcError as error:
             if error.code() != grpc.StatusCode.CANCELLED:
                 typer.echo(f"✗ {error.code()}: {error.details()}", err=True)
+
+
+if __name__ == "__main__":
+    app()
 
 ```
 
