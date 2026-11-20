@@ -80,6 +80,18 @@ Open `exercises/07_final_chat_client/client.py` and implement these command func
    - stop cleanly on `KeyboardInterrupt` / `EOFError`
    - ignore/quietly handle `StatusCode.CANCELLED`
 
+> **Output format:** the tests read stdout, so `print(...)` and `typer.echo(...)`
+> both work — but they look for these exact shapes:
+>
+> | Command   | Line to print                          |
+> |-----------|----------------------------------------|
+> | `send`    | `✓ Sent  id=<message_id>  status=<status>` |
+> | `history` | `[<user>] <content>`                   |
+> | `chat`    | `  ← [<user>] <content>`               |
+>
+> Errors (`✗ <code>: <details>`) are best sent to stderr
+> (`typer.echo(..., err=True)`); a welcome line in `chat` is up to you.
+
 ## Run it
 
 Your client runs straight from `07_final_chat_client/` — nothing to copy:
