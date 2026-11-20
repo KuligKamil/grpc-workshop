@@ -58,3 +58,31 @@ exercises/generated/chat_pb2_grpc.pyi
 
 If `protoc` prints `Field number 0 is illegal`, a field tag is missing.
 If it prints `Expected field name`, a brace or semicolon is wrong.
+
+## proto3 default values
+
+proto3 has no "field not set" for scalars: every field has a default
+(`""` for strings, `0` for numbers, `false` for bools) and that default is
+indistinguishable from someone explicitly sending it. The wire format simply
+omits default-valued fields.
+
+That is why `HistoryRequest.limit` is documented as *"0 = all"*: a client that
+does not care about the limit sends nothing, the server reads `0`, and the
+convention turns that into "no limit":
+
+```python
+limit = request.limit if request.limit > 0 else len(messages)
+```
+
+The same thing is why Exercise 3 validates `request.content`: an empty string is
+what you get both from `content=""` and from omitting `content` entirely.
+
+You can check this yourself: `HistoryRequest(room_id="x")` and
+`HistoryRequest(room_id="x", limit=0)` serialize to the *same bytes*, and
+`HasField("limit")` refuses to answer at all
+(`Field chat.HistoryRequest.limit does not have presence`).
+
+If you genuinely need to tell "unset" from "zero", proto3 gives you
+`optional` (which adds presence tracking, so `HasField()` works) or a wrapper
+message. For this workshop the `0 = all` convention is enough — but it is worth
+knowing it *is* a convention, not something the protocol enforces.

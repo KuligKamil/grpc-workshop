@@ -28,7 +28,7 @@ poe test-01 ... test-07  # run the tests for one exercise
 poe lint                 # ruff
 ```
 
-On a clean checkout `poe test-exercises` reports **33 failed, 3 passed** — the
+On a clean checkout `poe test-exercises` reports **34 failed, 3 passed** — the
 tests are written to fail until you implement each exercise.
 
 ## Setup

@@ -32,7 +32,7 @@ uv sync
 poe test-exercises
 ```
 
-If you see 33 failed, 3 passed tests. Everything is ok. The tests are designed to fail until you implement the solution.
+If you see 34 failed, 3 passed tests. Everything is ok. The tests are designed to fail until you implement the solution.
 
 To run the tests for a single exercise instead of all of them, use
 `poe test-01` … `poe test-07` (each regenerates the stubs first).
@@ -72,17 +72,18 @@ discord: kamilkulig
 
 3) Exercises
 
-| # | Exercise | Time | Notes |
-|---|----------|------|-------|
-| 1 | Proto Messages | ~10 min | |
-| 2 | Build a Service Stub | ~10 min | |
-| 3 | Implement Unary `SendMessage` | ~15 min | |
-| 4 | Unary Client + Verify Communication | ~10 min | |
-| 5 | Streaming Patterns | ~25 min | 3 required tasks + bonus experiments |
-| 6 | Deadlines and Error Handling | ~15 min | + optional cancellation bonus |
-| 7 | Final Chat Client | ~20 min | ties 5 and 6 together |
+| # | Exercise | Notes |
+|---|----------|-------|
+| 1 | Proto Messages | |
+| 2 | Build a Service Stub | |
+| 3 | Implement Unary `SendMessage` | |
+| 4 | Unary Client + Verify Communication | |
+| 5 | Streaming Patterns | 3 required tasks + bonus experiments |
+| 6 | Deadlines and Error Handling | + optional cancellation bonus |
+| 7 | Final Chat Client | ties 5 and 6 together |
 
-Times are rough: about 1h45 of exercises in total, excluding the bonuses.
+Optional bonuses, if there is time: cancellation (in Exercise 6) and
+[evolving the contract](#bonus-evolving-the-contract-optional).
 
 ---
 
@@ -739,8 +740,6 @@ Neither is required to run the exercises — they only improve static typing and
 
 # Exercise 1: Proto Messages
 
-**Estimated time:** ~10 min
-
 ## Goal
 
 Define the remaining proto messages in `chat.proto`.
@@ -844,9 +843,35 @@ message Message {
 
 </details>
 
-# Exercise 2: Build a Service Stub 
+## proto3 default values
 
-**Estimated time:** ~10 min
+proto3 has no "field not set" for scalars: every field has a default
+(`""` for strings, `0` for numbers, `false` for bools) and that default is
+indistinguishable from someone explicitly sending it. The wire format simply
+omits default-valued fields.
+
+That is why `HistoryRequest.limit` is documented as *"0 = all"*: a client that
+does not care about the limit sends nothing, the server reads `0`, and the
+convention turns that into "no limit":
+
+```python
+limit = request.limit if request.limit > 0 else len(messages)
+```
+
+The same thing is why Exercise 3 validates `request.content`: an empty string is
+what you get both from `content=""` and from omitting `content` entirely.
+
+You can check this yourself: `HistoryRequest(room_id="x")` and
+`HistoryRequest(room_id="x", limit=0)` serialize to the *same bytes*, and
+`HasField("limit")` refuses to answer at all
+(`Field chat.HistoryRequest.limit does not have presence`).
+
+If you genuinely need to tell "unset" from "zero", proto3 gives you
+`optional` (which adds presence tracking, so `HasField()` works) or a wrapper
+message. For this workshop the `0 = all` convention is enough — but it is worth
+knowing it *is* a convention, not something the protocol enforces.
+
+# Exercise 2: Build a Service Stub 
 
 ## Goal
 
@@ -1003,9 +1028,69 @@ if __name__ == "__main__":
 
 </details>
 
-# Exercise 3: Implement Unary SendMessage
+## What's inside the generated `chat_pb2_grpc.py`
 
-**Estimated time:** ~15 min
+You never edit this file, but reading it explains most of gRPC's behaviour.
+Open `exercises/generated/chat_pb2_grpc.py` and find these three things.
+
+**1. `ChatServiceStub` — the client side.** Its `__init__` turns each RPC into a
+callable, and the *method it uses* encodes the pattern straight from
+`chat.proto`:
+
+```python
+self.SendMessage      = channel.unary_unary(...)    # 1 in  → 1 out
+self.GetHistory       = channel.unary_stream(...)   # 1 in  → N out
+self.SendBulkMessages = channel.stream_unary(...)   # N in  → 1 out
+self.Chat             = channel.stream_stream(...)  # N in  → N out
+```
+
+This is why `stub.SendMessage(...)` returns a response object while
+`stub.GetHistory(...)` returns something you iterate: they are built by
+different channel methods. Each one also gets the serializer pair for its
+message types, which is why a stub only speaks `chat.proto`.
+
+**2. `ChatServiceServicer` — the server side you inherit from.** Every method is
+a placeholder that does exactly this:
+
+```python
+def SendMessage(self, request, context):
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+```
+
+That is the whole mystery behind `UNIMPLEMENTED: Method not implemented!` — it
+is not gRPC noticing a gap, it is this generated method running because your
+subclass didn't override it. Override it with a body of `pass` and you get
+`INTERNAL` or `UNKNOWN` instead, because now *your* code runs and returns
+nothing.
+
+**3. `add_ChatServiceServicer_to_server` — the wiring.** It builds a dict from
+method name to a handler that pairs your function with the right
+serializer/deserializer:
+
+```python
+'SendMessage': grpc.unary_unary_rpc_method_handler(
+        servicer.SendMessage,
+        request_deserializer=chat__pb2.MessageRequest.FromString,
+        response_serializer=chat__pb2.MessageResponse.SerializeToString,
+),
+```
+
+Two consequences worth remembering:
+
+- **Method names are looked up as strings**, so a typo (`send_message`,
+  `SendMesage`) does not fail loudly — gRPC just never finds your method and
+  the generated placeholder answers `UNIMPLEMENTED`.
+- **`response_serializer` is applied to whatever you return.** Return `None` and
+  serialization fails with `INTERNAL: Failed to serialize response!`, which is
+  the error from Exercise 2.
+
+There is also a `ChatService` class at the bottom using
+`grpc.experimental.*`. It is an experimental one-shot call API — ignore it, the
+workshop uses the stub.
+
+# Exercise 3: Implement Unary SendMessage
 
 ## Goal
 
@@ -1199,8 +1284,6 @@ if __name__ == "__main__":
 
 # Exercise 4: Unary Client + Verify Communication
 
-**Estimated time:** ~10 min
-
 ## Goal
 
 Write a client that calls `SendMessage` and see both sides talk to each other.
@@ -1302,8 +1385,6 @@ if __name__ == "__main__":
 </details>
 
 # Exercise 5: Streaming Patterns 
-
-**Estimated time:** ~25 min
 
 ## Goal
 
@@ -1415,6 +1496,29 @@ def SendBulkMessages(self, request_iterator, context):
         sent += 1
     return chat_pb2.BulkResponse(messages_sent=sent, messages_failed=0)
 ```
+
+**Now earn the second field.** `BulkResponse` has `messages_failed`, and
+hardcoding it to `0` makes it a lie. Count the bad ones instead: skip requests
+with empty `content` (the same rule `SendMessage` enforces) and report them.
+
+```python
+sent = 0
+failed = 0
+for request in request_iterator:
+    if not request.content:
+        failed += 1
+        continue
+    _make_message(request)
+    sent += 1
+return chat_pb2.BulkResponse(messages_sent=sent, messages_failed=failed)
+```
+
+Note the difference in *how the error is reported*: unary `SendMessage` aborts
+the whole call with `INVALID_ARGUMENT`, because there is one request and one
+response. Here one bad message out of fifty should not throw away the other
+forty-nine, so the call succeeds and the response carries the count. Choosing
+per-item reporting over a call-level error is a normal design decision in
+client-streaming APIs.
 
 Client side — pass a **generator** as the argument:
 
@@ -1717,8 +1821,6 @@ def serve(port: int = 50051) -> None:
 
 # Exercise 6: Deadlines and Error Handling 
 
-**Estimated time:** ~15 min
-
 ## Goal
 
 Learn how to make gRPC clients more resilient by handling:
@@ -1910,8 +2012,6 @@ if __name__ == "__main__":
 </details>
 
 # Exercise 7: Final Chat Client in `client.py` 
-
-**Estimated time:** ~20 min
 
 ## Goal
 
@@ -2124,6 +2224,74 @@ if __name__ == "__main__":
 ```
 
 </details>
+
+# Bonus: evolving the contract *(optional)*
+
+A `.proto` file is a contract between programs you deploy at different times.
+Protobuf is built so you can extend it without a flag day — if you follow two
+rules.
+
+## Adding a field is safe
+
+Add a sixth field to `Message` in `chat.proto`:
+
+```proto
+message Message {
+  string message_id = 1;
+  string room_id    = 2;
+  string user       = 3;
+  string content    = 4;
+  google.protobuf.Timestamp timestamp = 5;
+  string reply_to   = 6;   // new
+}
+```
+
+Regenerate (`poe generate-exercises`) and restart the server. A client built
+against the *old* schema keeps working: it parses the new messages fine and
+ignores field 6, because the wire format is field *numbers* plus types, not
+names or order. Unknown fields are simply skipped.
+
+Even better, a decoder that does not know a field **preserves it**. Serializing
+a message that an old client parsed and re-sent still carries `reply_to`
+through untouched — verified: 31 bytes in, 31 bytes out, `reply_to` intact on
+the other side. That is what makes proxies and older intermediaries safe.
+
+This is also why the old client reads `reply_to` as `""` rather than failing:
+see [proto3 default values](#proto3-default-values) — "absent" and "empty" are
+the same thing for a scalar.
+
+## What breaks the contract
+
+The field *number* is the identity. So:
+
+- **Never renumber or reuse a number.** Changing `content = 4` to
+  `content = 7` makes every deployed client read a different field. Reusing a
+  retired number is worse: old senders fill it with the old meaning and the new
+  code silently misreads it — the data looks plausible and is wrong.
+- **Renaming a field is fine on the wire** (it is just the generated Python
+  attribute that changes), but it breaks your source and anything using JSON
+  mapping.
+- **Changing a type is usually breaking.** `int32` to `string` reinterprets the
+  bytes.
+
+When you remove a field, retire its number with `reserved` so nobody can
+reuse it by accident:
+
+```proto
+message Message {
+  reserved 4;               // was: content
+  reserved "content";       // also block the name
+  string message_id = 1;
+  // ...
+}
+```
+
+`protoc` then rejects any attempt to use number 4 or the name `content` in this
+message — a compile-time error instead of a production mystery.
+
+> **Try it:** add `reply_to`, regenerate, and run `poe final-send` with a client
+> you *did not* regenerate. Then try giving `content` the number 7 and watch a
+> message sent by the old client arrive empty.
 
 # Common mistakes / Troubleshooting
 

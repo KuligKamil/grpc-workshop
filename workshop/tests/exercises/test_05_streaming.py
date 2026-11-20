@@ -150,3 +150,25 @@ def test_starter_demo_bidirectional_prints_replies(stub, capsys):
         "demo_bidirectional() should stream the `inputs` and print replies — got:\n"
         + out
     )
+
+
+def test_send_bulk_messages_counts_failures(stub):
+    """Empty-content requests must be counted in messages_failed, not stored.
+
+    Unlike unary SendMessage, a bulk call does not abort on one bad item: it
+    reports how many were rejected and keeps the good ones.
+    """
+    room = "sol-bulk-failed"
+    contents = ["ok 1", "", "ok 2", "", ""]
+
+    def _requests():
+        for content in contents:
+            yield chat_pb2.MessageRequest(room_id=room, user="alice", content=content)
+
+    response = stub.SendBulkMessages(_requests())
+    assert response.messages_sent == 2
+    assert response.messages_failed == 3
+
+    # The rejected ones must not have been stored.
+    messages = list(stub.GetHistory(chat_pb2.HistoryRequest(room_id=room, limit=10)))
+    assert [m.content for m in messages] == ["ok 1", "ok 2"]
