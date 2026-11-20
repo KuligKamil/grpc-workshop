@@ -3,7 +3,9 @@ from concurrent import futures
 
 import grpc
 from google.protobuf.timestamp_pb2 import Timestamp
-from grpc import StatusCode
+
+# Used by the SendMessage TODO in Exercise 03 (context.abort(StatusCode...)).
+from grpc import StatusCode  # noqa: F401
 
 from exercises.generated import chat_pb2, chat_pb2_grpc
 

@@ -24,7 +24,7 @@ def main():
 
             # TODO 4: print message_id and status
 
-        except grpc.RpcError as e:
+        except grpc.RpcError:
             # TODO 5: print the error code and details
             pass
 

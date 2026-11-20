@@ -1,5 +1,7 @@
 # Exercise 3: Implement Unary SendMessage
 
+**Estimated time:** ~15 min
+
 ## Goal
 
 Add real logic to `SendMessage` so the server actually stores and acknowledges
@@ -79,6 +81,25 @@ poe server
 poe client-send --room general --user alice "Hello!"
 # ✓ Sent  id=<uuid>  status=ok
 ```
+
+## Verify
+
+Run just this exercise's tests (regenerates the stubs first):
+
+```bash
+poe test-03
+```
+
+`poe test-exercises` runs all of them.
+
+> **Restart the server after every change to `server.py`.** `poe server` loads
+> your code once at startup, so edits are not picked up by the running process:
+> stop it with Ctrl-C and start it again. If you get `UNIMPLEMENTED` or
+> `INTERNAL` for a method you just wrote, this is almost always why.
+>
+> Restarting also clears `_store`, which lives in memory — the message history
+> from before the restart is gone, so send a few fresh messages before testing
+> `GetHistory`.
 
 ## ✅ Micro-check
 

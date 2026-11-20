@@ -24,7 +24,18 @@ source .venv/bin/activate
 poe test-exercises
 ```
 
+On Windows, activate the virtualenv with PowerShell instead:
+
+```powershell
+uv sync
+.venv\Scripts\Activate.ps1
+poe test-exercises
+```
+
 If you see 33 failed, 3 passed tests. Everything is ok. The tests are designed to fail until you implement the solution.
+
+To run the tests for a single exercise instead of all of them, use
+`poe test-01` … `poe test-07` (each regenerates the stubs first).
 
 ---
 
@@ -60,6 +71,18 @@ discord: kamilkulig
 2) Live coding
 
 3) Exercises
+
+| # | Exercise | Time | Notes |
+|---|----------|------|-------|
+| 1 | Proto Messages | ~10 min | |
+| 2 | Build a Service Stub | ~10 min | |
+| 3 | Implement Unary `SendMessage` | ~15 min | |
+| 4 | Unary Client + Verify Communication | ~10 min | |
+| 5 | Streaming Patterns | ~25 min | 3 required tasks + bonus experiments |
+| 6 | Deadlines and Error Handling | ~15 min | + optional cancellation bonus |
+| 7 | Final Chat Client | ~20 min | ties 5 and 6 together |
+
+Times are rough: about 1h45 of exercises in total, excluding the bonuses.
 
 ---
 
@@ -640,30 +663,6 @@ message OrderStatusUpdate {
 
 ---
 
-# Project Setup
-
-![alt text](assets/qrcode_github.com.png)
-
-```bash
-git clone https://github.com/KuligKamil/grpc-workshop/
-```
-
-
-```bash
-# Clone & enter workshop
-cd workshop
-
-# run test-exercises
-docker compose run --rm workshop poe test-exercises
-
-# Or create virtualenv and install deps and run
-uv sync
-source .venv/bin/activate
-poe test-exercises
-```
-
-
-
 # How to prepare for the workshop
 
 Install docker and docker-compose or install uv
@@ -710,6 +709,17 @@ source .venv/bin/activate
 <poe command>
 ```
 
+On Windows (PowerShell):
+
+```powershell
+uv sync
+.venv\Scripts\Activate.ps1
+<poe command>
+```
+
+All `poe` tasks are cross-platform (no shell built-ins), so they behave the
+same on Linux, macOS and Windows — CI runs the test suite on all three.
+
 ## Dev dependencies
 
 The `dev` dependency group (installed automatically by `uv sync`) includes two
@@ -728,6 +738,8 @@ Neither is required to run the exercises — they only improve static typing and
 
 
 # Exercise 1: Proto Messages
+
+**Estimated time:** ~10 min
 
 ## Goal
 
@@ -833,6 +845,8 @@ message Message {
 </details>
 
 # Exercise 2: Build a Service Stub 
+
+**Estimated time:** ~10 min
 
 ## Goal
 
@@ -991,6 +1005,8 @@ if __name__ == "__main__":
 
 # Exercise 3: Implement Unary SendMessage
 
+**Estimated time:** ~15 min
+
 ## Goal
 
 Add real logic to `SendMessage` so the server actually stores and acknowledges
@@ -1070,6 +1086,15 @@ poe server
 poe client-send --room general --user alice "Hello!"
 # ✓ Sent  id=<uuid>  status=ok
 ```
+
+> **Restart the server after every change to `server.py`.** `poe server` loads
+> your code once at startup, so edits are not picked up by the running process:
+> stop it with Ctrl-C and start it again. If you get `UNIMPLEMENTED` or
+> `INTERNAL` for a method you just wrote, this is almost always why.
+>
+> Restarting also clears `_store`, which lives in memory — the message history
+> from before the restart is gone, so send a few fresh messages before testing
+> `GetHistory`.
 
 ## ✅ Micro-check
 
@@ -1174,6 +1199,8 @@ if __name__ == "__main__":
 
 # Exercise 4: Unary Client + Verify Communication
 
+**Estimated time:** ~10 min
+
 ## Goal
 
 Write a client that calls `SendMessage` and see both sides talk to each other.
@@ -1276,6 +1303,8 @@ if __name__ == "__main__":
 
 # Exercise 5: Streaming Patterns 
 
+**Estimated time:** ~25 min
+
 ## Goal
 
 Complete all four communication patterns on the server by adding the three
@@ -1346,6 +1375,11 @@ sequenceDiagram
     C->>S: (half-close)
     S-->>-C: (stream closed)
 ```
+
+> **Required vs bonus:** Tasks 1–3 below are required. `streaming_starter.py`
+> additionally marks a few *bonus* experiments inside `demo_bidirectional`
+> (pausing between yields, signalling half-close, passing a timeout) — skip
+> them if you are short on time and come back later.
 
 ## Required Tasks
 
@@ -1440,6 +1474,15 @@ Open `streaming_starter.py` to write your experiments.
 `poe starter-05` runs each demo independently: an unfinished one prints
 `[demo_... not finished yet: ...]` and the others still run, so you can tackle
 the three tasks in any order.
+
+> **Restart the server after every change to `server.py`.** `poe server` loads
+> your code once at startup, so edits are not picked up by the running process:
+> stop it with Ctrl-C and start it again. If you get `UNIMPLEMENTED` or
+> `INTERNAL` for a method you just wrote, this is almost always why.
+>
+> Restarting also clears `_store`, which lives in memory — the message history
+> from before the restart is gone, so send a few fresh messages before testing
+> `GetHistory`.
 
 ## ✅ Micro-check
 
@@ -1674,6 +1717,8 @@ def serve(port: int = 50051) -> None:
 
 # Exercise 6: Deadlines and Error Handling 
 
+**Estimated time:** ~15 min
+
 ## Goal
 
 Learn how to make gRPC clients more resilient by handling:
@@ -1751,7 +1796,7 @@ You should see output similar to:
 
 If deadline shows `UNAVAILABLE`, check that your call uses `wait_for_ready=True`.
 
-## Bonus — cancellation
+## Bonus — cancellation *(optional)*
 
 The directory is named `..._cancellation_...`, so here is the part the two
 tasks above don't cover: who stops a call that is still running.
@@ -1865,6 +1910,8 @@ if __name__ == "__main__":
 </details>
 
 # Exercise 7: Final Chat Client in `client.py` 
+
+**Estimated time:** ~20 min
 
 ## Goal
 
@@ -2077,6 +2124,102 @@ if __name__ == "__main__":
 ```
 
 </details>
+
+# Common mistakes / Troubleshooting
+
+Things that bite people during this workshop, and what they look like.
+
+### `Address already in use` when starting the server
+
+An old server is still running on port 50051 (often a forgotten terminal, or a
+Docker `server` container).
+
+```bash
+# macOS / Linux — find and stop whatever holds the port
+lsof -i :50051
+kill <pid>
+
+# Docker
+docker compose down
+
+# Or just use a different port
+poe server --port 50052
+```
+
+### `ModuleNotFoundError: No module named 'exercises.generated.chat_pb2'`
+
+The generated code does not exist yet. Finish Exercise 1, then:
+
+```bash
+poe generate-exercises
+```
+
+The tests skip themselves with a reminder when this is missing, so a pile of
+skipped tests means the same thing.
+
+### You changed `chat.proto` but nothing changed
+
+The generated stubs are built from `chat.proto`, so they have to be rebuilt:
+
+```bash
+poe generate-exercises
+```
+
+`poe server` now does this for you on every start — but if you import the
+generated module in an already-running process (a REPL, a long-lived script),
+restart that too.
+
+### `UNIMPLEMENTED` vs `INTERNAL` / `UNKNOWN`
+
+| What you see | What it means |
+|---|---|
+| `UNIMPLEMENTED: Method not implemented!` | gRPC never found your method — it is missing from `ChatServicer`, or the name is misspelled (they are case-sensitive: `SendMessage`, not `send_message`) |
+| `INTERNAL: Failed to serialize response!` | your unary method ran but returned `None` — you have not returned a response message yet |
+| `UNKNOWN: Exception iterating responses: 'NoneType' object is not an iterator` | your streaming method ran but never `yield`ed |
+
+### Edits to `server.py` seem to be ignored
+
+`poe server` loads your code once at startup. Stop it (Ctrl-C) and start it
+again. Restarting also clears the in-memory `_store`, so earlier messages are
+gone.
+
+### `GetHistory` returns nothing
+
+Room names are plain strings and must match exactly. If you sent to `general`
+and ask for `demo`, you correctly get an empty stream. Also remember the
+in-memory store is empty after every server restart.
+
+### `messages` instead of `messages()`
+
+Client-streaming and bidirectional calls take an *iterator*, so you must call
+your generator function:
+
+```python
+stub.SendBulkMessages(messages())   # correct — passes the generator object
+stub.SendBulkMessages(messages)     # wrong — passes the function itself
+```
+
+The second form fails with `UNKNOWN: Exception iterating requests!` — gRPC got
+a function where it expected something to iterate over.
+
+### Docker: the client cannot reach the server over `localhost`
+
+Every `docker compose run` starts its own container, and `localhost` inside it
+means that container, not your host or the server container.
+
+```bash
+# Server in one terminal
+docker compose up server
+
+# Clients: address the service by name
+docker compose run --rm workshop poe client-send --host server "Hello"
+
+# Starter scripts hardcode localhost:50051, so run them inside the server container
+docker compose exec server uv run poe starter-04
+```
+
+`uv run` is required with `exec`, because `exec` skips the image entrypoint and
+the virtualenv in `/opt/venv` is not on `PATH`.
 
 # Next
 

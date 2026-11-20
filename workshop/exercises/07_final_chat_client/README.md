@@ -1,5 +1,7 @@
 # Exercise 7: Final Chat Client in `client.py` 
 
+**Estimated time:** ~20 min
+
 ## Goal
 
 Build the final workshop app by implementing three CLI commands directly in
@@ -96,6 +98,16 @@ poe final-chat --room general --user alice
 > pointed at `exercises/client.py`, the reference CLI you used to smoke-test the
 > server in Exercises 3–5. The `final-*` tasks run **your** client, so you can
 > compare the two side by side.
+
+## Verify
+
+Run just this exercise's tests (regenerates the stubs first):
+
+```bash
+poe test-07
+```
+
+`poe test-exercises` runs all of them.
 
 ## ✅ Micro-check
 

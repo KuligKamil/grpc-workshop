@@ -1,0 +1,97 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: workshop
+
+jobs:
+  # A clean checkout must give participants the baseline the README promises.
+  clean-repo:
+    name: Clean repo (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.11.8"
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Run the exercise tests
+        id: tests
+        shell: bash
+        # The tests are written to fail until each exercise is implemented,
+        # so a non-zero exit code is expected here.
+        run: uv run poe test-exercises > test-output.txt 2>&1 || true
+
+      - name: Check the baseline matches the README
+        shell: bash
+        run: |
+          tail -n 20 test-output.txt
+          expected="33 failed, 3 passed"
+          if ! grep -q "$expected" test-output.txt; then
+            echo "::error::Expected '$expected' on a clean repo."
+            echo "The README tells participants what to expect, so either the"
+            echo "tests or the README's numbers need updating."
+            exit 1
+          fi
+          echo "Baseline matches the README: $expected"
+
+  # The solutions published in the README must actually work: this is what
+  # catches things like a solution importing a package that does not exist.
+  readme-solutions:
+    name: README solutions (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.11.8"
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Apply the Solution blocks from the README
+        run: uv run python infrastructure/apply_readme_solutions.py
+
+      - name: Every test must pass
+        run: uv run poe test-exercises
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.11.8"
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: ruff
+        run: uv run poe lint

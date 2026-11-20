@@ -1,5 +1,7 @@
 # Exercise 1: Proto Messages
 
+**Estimated time:** ~10 min
+
 ## Goal
 
 Define the remaining proto messages in `chat.proto`.
@@ -33,6 +35,14 @@ Define these four messages (field names and types are in the comments in the fil
 poe generate-exercises
 # No errors → exercises/generated/ updated
 ```
+
+Then run just this exercise's tests:
+
+```bash
+poe test-01
+```
+
+`poe test-exercises` runs all of them.
 
 ## ✅ Micro-check
 

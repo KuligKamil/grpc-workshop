@@ -1,5 +1,7 @@
 # Exercise 5: Streaming Patterns 
 
+**Estimated time:** ~25 min
+
 ## Goal
 
 Complete all four communication patterns on the server by adding the three
@@ -70,6 +72,11 @@ sequenceDiagram
     C->>S: (half-close)
     S-->>-C: (stream closed)
 ```
+
+> **Required vs bonus:** Tasks 1–3 below are required. `streaming_starter.py`
+> additionally marks a few *bonus* experiments inside `demo_bidirectional`
+> (pausing between yields, signalling half-close, passing a timeout) — skip
+> them if you are short on time and come back later.
 
 ## Required Tasks
 
@@ -176,6 +183,25 @@ Open `streaming_starter.py` to write your experiments.
 `poe starter-05` runs each demo independently: an unfinished one prints
 `[demo_... not finished yet: ...]` and the others still run, so you can tackle
 the three tasks in any order.
+
+## Verify
+
+Run just this exercise's tests (regenerates the stubs first):
+
+```bash
+poe test-05
+```
+
+`poe test-exercises` runs all of them.
+
+> **Restart the server after every change to `server.py`.** `poe server` loads
+> your code once at startup, so edits are not picked up by the running process:
+> stop it with Ctrl-C and start it again. If you get `UNIMPLEMENTED` or
+> `INTERNAL` for a method you just wrote, this is almost always why.
+>
+> Restarting also clears `_store`, which lives in memory — the message history
+> from before the restart is gone, so send a few fresh messages before testing
+> `GetHistory`.
 
 ## ✅ Micro-check
 
