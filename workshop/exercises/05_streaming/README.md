@@ -2,7 +2,9 @@
 
 ## Goal
 
-Extend the server with all four communication patterns and test each one from the client.
+Complete all four communication patterns on the server by adding the three
+streaming ones — unary `SendMessage` is already done in Exercise 3 — and test
+each from the client.
 
 This exercise has three required parts:
 - server streaming (`GetHistory`)
@@ -171,6 +173,10 @@ is not on `PATH`.
 
 Open `streaming_starter.py` to write your experiments.
 
+`poe starter-05` runs each demo independently: an unfinished one prints
+`[demo_... not finished yet: ...]` and the others still run, so you can tackle
+the three tasks in any order.
+
 ## ✅ Micro-check
 
 **Task 1 (GetHistory)** — after sending a few messages, history should stream
@@ -183,7 +189,9 @@ each one back:
 
 If it prints nothing, the room name in `HistoryRequest` doesn't match the one
 you sent to — double-check `room_id`.
-If you get `UNIMPLEMENTED`, `GetHistory` is still `pass` in `server.py`.
+If you get `UNKNOWN: Exception iterating responses: 'NoneType' object is not
+an iterator`, `GetHistory` is still `pass` in `server.py` — a streaming method
+has to `yield`. `UNIMPLEMENTED` would mean the method is missing altogether.
 
 **Task 2 (SendBulkMessages)** — `poe starter-05` should print:
 

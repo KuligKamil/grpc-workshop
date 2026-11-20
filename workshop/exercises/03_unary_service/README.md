@@ -95,5 +95,7 @@ poe client-send --room general --user alice ""
 # ✗ StatusCode.INVALID_ARGUMENT: Message content cannot be empty
 ```
 
-If you get `UNIMPLEMENTED` instead of `INVALID_ARGUMENT`, `SendMessage` is
-still returning `pass` — make sure the method is uncommented in `server.py`.
+If you get `INTERNAL: Failed to serialize response!` instead of
+`INVALID_ARGUMENT`, `SendMessage` is still returning `pass` — it runs but
+returns nothing. If you get `UNIMPLEMENTED: Method not implemented!`, the
+method is missing from `ChatServicer` entirely (or its name is misspelled).

@@ -64,5 +64,23 @@ gRPC server listening on :50051
 
 If the server crashes on import, a method name is probably misspelled — check
 against the signatures in the **Context** section above.
-If it prints `unimplemented` when you call it, the stub is wired correctly —
-that's the expected placeholder response from gRPC.
+Now call it (`poe client-send --room general --user alice "Hello!"`). You get:
+
+```
+✗ StatusCode.INTERNAL: Failed to serialize response!
+```
+
+That error means the stub is wired correctly. Your method ran — it just
+returned `None`, and gRPC could not serialize `None` into a `MessageResponse`.
+
+It is worth knowing the difference, because the two look similar but mean
+opposite things:
+
+| Servicer state | Unary call | Streaming call |
+|---|---|---|
+| method defined, body is `pass` | `INTERNAL: Failed to serialize response!` | `UNKNOWN: Exception iterating responses: 'NoneType' object is not an iterator` |
+| method not defined at all | `UNIMPLEMENTED: Method not implemented!` | `UNIMPLEMENTED: Method not implemented!` |
+
+So `UNIMPLEMENTED` means gRPC never found your method (check the spelling
+against the generated base class); `INTERNAL`/`UNKNOWN` means it found and ran
+it, but you have not returned anything yet. We fix that in Exercise 3.

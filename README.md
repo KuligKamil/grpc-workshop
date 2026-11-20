@@ -24,7 +24,7 @@ source .venv/bin/activate
 poe test-exercises
 ```
 
-If you see 26 failed, 4 passed tests. Everything is ok. The tests are designed to fail until you implement the solution.
+If you see 33 failed, 3 passed tests. Everything is ok. The tests are designed to fail until you implement the solution.
 
 ---
 
@@ -898,8 +898,26 @@ gRPC server listening on :50051
 
 If the server crashes on import, a method name is probably misspelled — check
 against the signatures in the **Context** section above.
-If it prints `unimplemented` when you call it, the stub is wired correctly —
-that's the expected placeholder response from gRPC.
+Now call it (`poe client-send --room general --user alice "Hello!"`). You get:
+
+```
+✗ StatusCode.INTERNAL: Failed to serialize response!
+```
+
+That error means the stub is wired correctly. Your method ran — it just
+returned `None`, and gRPC could not serialize `None` into a `MessageResponse`.
+
+It is worth knowing the difference, because the two look similar but mean
+opposite things:
+
+| Servicer state | Unary call | Streaming call |
+|---|---|---|
+| method defined, body is `pass` | `INTERNAL: Failed to serialize response!` | `UNKNOWN: Exception iterating responses: 'NoneType' object is not an iterator` |
+| method not defined at all | `UNIMPLEMENTED: Method not implemented!` | `UNIMPLEMENTED: Method not implemented!` |
+
+So `UNIMPLEMENTED` means gRPC never found your method (check the spelling
+against the generated base class); `INTERNAL`/`UNKNOWN` means it found and ran
+it, but you have not returned anything yet. We fix that in Exercise 3.
 
 ## Solution
 
@@ -1068,8 +1086,10 @@ poe client-send --room general --user alice ""
 # ✗ StatusCode.INVALID_ARGUMENT: Message content cannot be empty
 ```
 
-If you get `UNIMPLEMENTED` instead of `INVALID_ARGUMENT`, `SendMessage` is
-still returning `pass` — make sure the method is uncommented in `server.py`.
+If you get `INTERNAL: Failed to serialize response!` instead of
+`INVALID_ARGUMENT`, `SendMessage` is still returning `pass` — it runs but
+returns nothing. If you get `UNIMPLEMENTED: Method not implemented!`, the
+method is missing from `ChatServicer` entirely (or its name is misspelled).
 
 ## Solution
 
@@ -1196,7 +1216,9 @@ poe starter-04
 #   status:     ok
 ```
 
-Try sending an empty message — what error code do you get?
+Then try the failure path: change `content` in `client_starter.py` to `""`,
+run `poe starter-04` again — what error code do you get? (Exercise 3 made the
+server reject it.) Set it back to a real message afterwards.
 
 ## ✅ Micro-check
 
@@ -1256,7 +1278,9 @@ if __name__ == "__main__":
 
 ## Goal
 
-Extend the server with all four communication patterns and test each one from the client.
+Complete all four communication patterns on the server by adding the three
+streaming ones — unary `SendMessage` is already done in Exercise 3 — and test
+each from the client.
 
 This exercise has three required parts:
 - server streaming (`GetHistory`)
@@ -1413,6 +1437,10 @@ poe client-chat --room general --user alice
 
 Open `streaming_starter.py` to write your experiments.
 
+`poe starter-05` runs each demo independently: an unfinished one prints
+`[demo_... not finished yet: ...]` and the others still run, so you can tackle
+the three tasks in any order.
+
 ## ✅ Micro-check
 
 **Task 1 (GetHistory)** — after sending a few messages, history should stream
@@ -1425,7 +1453,9 @@ each one back:
 
 If it prints nothing, the room name in `HistoryRequest` doesn't match the one
 you sent to — double-check `room_id`.
-If you get `UNIMPLEMENTED`, `GetHistory` is still `pass` in `server.py`.
+If you get `UNKNOWN: Exception iterating responses: 'NoneType' object is not
+an iterator`, `GetHistory` is still `pass` in `server.py` — a streaming method
+has to `yield`. `UNIMPLEMENTED` would mean the method is missing altogether.
 
 **Task 2 (SendBulkMessages)** — `poe starter-05` should print:
 
@@ -1720,6 +1750,39 @@ You should see output similar to:
 ```
 
 If deadline shows `UNAVAILABLE`, check that your call uses `wait_for_ready=True`.
+
+## Bonus — cancellation
+
+The directory is named `..._cancellation_...`, so here is the part the two
+tasks above don't cover: who stops a call that is still running.
+
+**Client side** — a streaming call returns a call object, not just an iterator,
+and it has `.cancel()`:
+
+```python
+call = stub.GetHistory(chat_pb2.HistoryRequest(room_id="general", limit=0))
+for message in call:
+    print(message.content)
+    call.cancel()        # stop after the first one
+    break
+```
+
+Iterating the call afterwards raises `grpc.RpcError` with
+`StatusCode.CANCELLED`. Note that `.future()` exists only for *unary* calls —
+streaming calls give you `.cancel()` on the call object itself.
+
+**Server side** — the servicer can notice that nobody is listening any more:
+
+```python
+def GetHistory(self, request, context):
+    for message in _store.get(request.room_id, []):
+        if not context.is_active():     # client went away
+            return
+        yield message
+```
+
+`context.add_callback(fn)` registers `fn` to run when the call ends, however it
+ends — the usual place to release per-call resources.
 
 ## Solution
 
