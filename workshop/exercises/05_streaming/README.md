@@ -1,7 +1,5 @@
 # Exercise 5: Streaming Patterns 
 
-**Estimated time:** ~25 min
-
 ## Goal
 
 Complete all four communication patterns on the server by adding the three
@@ -206,7 +204,6 @@ docker compose exec server uv run poe starter-05    # terminal 2
 
 `uv run` is required: `exec` skips the entrypoint and the venv in `/opt/venv`
 is not on `PATH`.
-
 
 Open `streaming_starter.py` to write your experiments.
 

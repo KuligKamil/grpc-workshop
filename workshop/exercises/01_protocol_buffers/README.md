@@ -1,7 +1,5 @@
 # Exercise 1: Proto Messages
 
-**Estimated time:** ~10 min
-
 ## Goal
 
 Define the remaining proto messages in `chat.proto`.

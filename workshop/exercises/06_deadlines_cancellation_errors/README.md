@@ -1,7 +1,5 @@
 # Exercise 6: Deadlines and Error Handling 
 
-**Estimated time:** ~15 min
-
 ## Goal
 
 Learn how to make gRPC clients more resilient by handling:
@@ -79,6 +77,33 @@ docker compose exec server uv run poe starter-06    # terminal 2
 `uv run` is required: `exec` skips the entrypoint and the venv in `/opt/venv`
 is not on `PATH`.
 
+## Verify
+
+Run just this exercise's tests (regenerates the stubs first):
+
+```bash
+poe test-06
+```
+
+`poe test-exercises` runs all of them.
+
+## ✅ Micro-check
+
+You should see output similar to:
+
+```text
+[Deadline]
+code=StatusCode.DEADLINE_EXCEEDED
+
+[Error]
+code=StatusCode.INVALID_ARGUMENT details=Message content cannot be empty
+```
+
+`error.code()` is a `grpc.StatusCode` enum, so it prints with the
+`StatusCode.` prefix; use `error.code().name` if you want just
+`DEADLINE_EXCEEDED`.
+
+If deadline shows `UNAVAILABLE`, check that your call uses `wait_for_ready=True`.
 
 ## Bonus — cancellation *(optional)*
 
@@ -112,32 +137,3 @@ def GetHistory(self, request, context):
 
 `context.add_callback(fn)` registers `fn` to run when the call ends, however it
 ends — the usual place to release per-call resources.
-
-## Verify
-
-Run just this exercise's tests (regenerates the stubs first):
-
-```bash
-poe test-06
-```
-
-`poe test-exercises` runs all of them.
-
-## ✅ Micro-check
-
-You should see output similar to:
-
-```text
-[Deadline]
-code=StatusCode.DEADLINE_EXCEEDED
-
-[Error]
-code=StatusCode.INVALID_ARGUMENT details=Message content cannot be empty
-```
-
-`error.code()` is a `grpc.StatusCode` enum, so it prints with the
-`StatusCode.` prefix; use `error.code().name` if you want just
-`DEADLINE_EXCEEDED`.
-
-If deadline shows `UNAVAILABLE`, check that your call uses `wait_for_ready=True`.
-

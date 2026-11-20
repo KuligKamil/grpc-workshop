@@ -1,7 +1,5 @@
 # Exercise 4: Unary Client + Verify Communication
 
-**Estimated time:** ~10 min
-
 ## Goal
 
 Write a client that calls `SendMessage` and see both sides talk to each other.
@@ -54,7 +52,6 @@ docker compose exec server uv run poe starter-04    # terminal 2
 
 `uv run` is required: `exec` skips the entrypoint and the venv in `/opt/venv`
 is not on `PATH`.
-
 
 Then try the failure path: change `content` in `client_starter.py` to `""`,
 run `poe starter-04` again — what error code do you get? (Exercise 3 made the

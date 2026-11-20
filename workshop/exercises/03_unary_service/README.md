@@ -1,7 +1,5 @@
 # Exercise 3: Implement Unary SendMessage
 
-**Estimated time:** ~15 min
-
 ## Goal
 
 Add real logic to `SendMessage` so the server actually stores and acknowledges

@@ -769,9 +769,18 @@ Define these four messages (field names and types are in the comments in the fil
 ## Verify
 
 ```bash
+# From the workshop/ directory:
 poe generate-exercises
 # No errors → exercises/generated/ updated
 ```
+
+Then run just this exercise's tests:
+
+```bash
+poe test-01
+```
+
+`poe test-exercises` runs all of them.
 
 ## ✅ Micro-check
 
@@ -938,6 +947,16 @@ poe server
 
 The server starts but returns gRPC errors on every call — that's expected.
 We'll add the real logic in Exercise 3.
+
+## Verify
+
+Run just this exercise's tests (regenerates the stubs first):
+
+```bash
+poe test-02
+```
+
+`poe test-exercises` runs all of them.
 
 ## ✅ Micro-check
 
@@ -1188,6 +1207,16 @@ poe client-send --room general --user alice "Hello!"
 # ✓ Sent  id=<uuid>  status=ok
 ```
 
+## Verify
+
+Run just this exercise's tests (regenerates the stubs first):
+
+```bash
+poe test-03
+```
+
+`poe test-exercises` runs all of them.
+
 > **Restart the server after every change to `server.py`.** `poe server` loads
 > your code once at startup, so edits are not picked up by the running process:
 > stop it with Ctrl-C and start it again. If you get `UNIMPLEMENTED` or
@@ -1342,9 +1371,30 @@ poe starter-04
 #   status:     ok
 ```
 
+**Running with Docker?** `starter-04` connects to `localhost:50051`, so it has to
+run inside the server container:
+
+```bash
+docker compose up server                            # terminal 1
+docker compose exec server uv run poe starter-04    # terminal 2
+```
+
+`uv run` is required: `exec` skips the entrypoint and the venv in `/opt/venv`
+is not on `PATH`.
+
 Then try the failure path: change `content` in `client_starter.py` to `""`,
 run `poe starter-04` again — what error code do you get? (Exercise 3 made the
 server reject it.) Set it back to a real message afterwards.
+
+## Verify
+
+Run just this exercise's tests (regenerates the stubs first):
+
+```bash
+poe test-04
+```
+
+`poe test-exercises` runs all of them.
 
 ## ✅ Micro-check
 
@@ -1502,6 +1552,10 @@ for message in stub.GetHistory(
     print(f"[{message.user}] {message.content}")
 ```
 
+> Remember the proto3 default: `limit` arrives as `0` when the client does not
+> set it, which is why `0` means "all" here. See
+> [proto3 default values](#proto3-default-values).
+
 ### Task 2 — Client streaming: `SendBulkMessages`
 
 ```python
@@ -1592,6 +1646,17 @@ poe client-history --room general --limit 10
 poe client-chat --room general --user alice
 ```
 
+**Running with Docker?** `starter-05` connects to `localhost:50051`, so it has to
+run inside the server container:
+
+```bash
+docker compose up server                            # terminal 1
+docker compose exec server uv run poe starter-05    # terminal 2
+```
+
+`uv run` is required: `exec` skips the entrypoint and the venv in `/opt/venv`
+is not on `PATH`.
+
 Open `streaming_starter.py` to write your experiments.
 
 `poe starter-05` runs each demo independently, so you can tackle the three
@@ -1599,6 +1664,16 @@ tasks in any order. A demo you have not touched yet just prints its header
 (e.g. `[Server streaming] GetHistory:`) and nothing under it. A half-written
 one that raises prints `[demo_... not finished yet: ...]`, and the other
 demos still run.
+
+## Verify
+
+Run just this exercise's tests (regenerates the stubs first):
+
+```bash
+poe test-05
+```
+
+`poe test-exercises` runs all of them.
 
 > **Restart the server after every change to `server.py`.** `poe server` loads
 > your code once at startup, so edits are not picked up by the running process:
@@ -1910,6 +1985,27 @@ poe server
 poe starter-06
 ```
 
+**Running with Docker?** `starter-06` connects to `localhost:50051`, so it has to
+run inside the server container:
+
+```bash
+docker compose up server                            # terminal 1
+docker compose exec server uv run poe starter-06    # terminal 2
+```
+
+`uv run` is required: `exec` skips the entrypoint and the venv in `/opt/venv`
+is not on `PATH`.
+
+## Verify
+
+Run just this exercise's tests (regenerates the stubs first):
+
+```bash
+poe test-06
+```
+
+`poe test-exercises` runs all of them.
+
 ## ✅ Micro-check
 
 You should see output similar to:
@@ -2153,6 +2249,16 @@ poe final-chat --room general --user alice
 > pointed at `exercises/client.py`, the reference CLI you used to smoke-test the
 > server in Exercises 3–5. The `final-*` tasks run **your** client, so you can
 > compare the two side by side.
+
+## Verify
+
+Run just this exercise's tests (regenerates the stubs first):
+
+```bash
+poe test-07
+```
+
+`poe test-exercises` runs all of them.
 
 ## ✅ Micro-check
 

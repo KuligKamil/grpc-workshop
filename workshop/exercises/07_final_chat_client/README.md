@@ -1,7 +1,5 @@
 # Exercise 7: Final Chat Client in `client.py` 
 
-**Estimated time:** ~20 min
-
 ## Goal
 
 Build the final workshop app by implementing three CLI commands directly in
