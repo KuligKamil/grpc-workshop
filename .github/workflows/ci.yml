@@ -78,6 +78,39 @@ jobs:
       - name: Every test must pass
         run: uv run poe test-exercises
 
+      # Participants paste this code and may run `poe lint` on it.
+      - name: The pasted solutions must also be lint-clean
+        run: uv run poe lint
+
+  # The test suite builds its servers in-process, so it never runs the commands
+  # participants actually type. Three defects in the starter scripts passed the
+  # whole suite and only turned up when someone ran them by hand.
+  smoke:
+    name: Runtime smoke (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.11.8"
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      # The servers need working implementations, so start from the solutions.
+      - name: Apply the Solution blocks from the README
+        run: uv run python infrastructure/apply_readme_solutions.py
+
+      - name: Start each server and run the client commands
+        run: uv run python infrastructure/smoke_test.py
+
   lint:
     name: Lint
     runs-on: ubuntu-latest

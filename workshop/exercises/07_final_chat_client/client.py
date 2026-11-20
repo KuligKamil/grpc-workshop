@@ -1,8 +1,17 @@
 """CLI client for the Chat gRPC service."""
+
+import sys
+
 import grpc
 import typer
 
 from exercises.generated import chat_pb2, chat_pb2_grpc
+
+# Windows consoles default to cp1252, which cannot encode the checkmarks and
+# arrows below, so printing them raises UnicodeEncodeError. Ask for UTF-8.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8", errors="replace")
 
 app = typer.Typer(help="Chat service client")
 

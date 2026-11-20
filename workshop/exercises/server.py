@@ -6,6 +6,7 @@ from google.protobuf.timestamp_pb2 import Timestamp
 
 # Used by the SendMessage TODO in Exercise 03 (context.abort(StatusCode...)).
 from grpc import StatusCode  # noqa: F401
+from grpc_reflection.v1alpha import reflection
 
 from exercises.generated import chat_pb2, chat_pb2_grpc
 
@@ -61,6 +62,18 @@ class ChatServicer(chat_pb2_grpc.ChatServiceServicer):
 def serve(port: int = 50051) -> None:
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     chat_pb2_grpc.add_ChatServiceServicer_to_server(ChatServicer(), server)
+
+    # Server reflection lets tools like grpcurl discover this service without a
+    # local copy of chat.proto. See "Bonus: grpcurl and reflection" in the
+    # main README.
+    reflection.enable_server_reflection(
+        (
+            chat_pb2.DESCRIPTOR.services_by_name["ChatService"].full_name,
+            reflection.SERVICE_NAME,
+        ),
+        server,
+    )
+
     server.add_insecure_port(f"[::]:{port}")
     try:
         server.start()

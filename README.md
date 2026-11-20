@@ -72,20 +72,23 @@ discord: kamilkulig
 
 3) Exercises
 
-| # | Exercise | Time | Notes |
-|---|----------|------|-------|
-| 1 | Proto Messages | ~10 min | |
-| 2 | Build a Service Stub | ~10 min | |
-| 3 | Implement Unary `SendMessage` | ~15 min | |
-| 4 | Unary Client + Verify Communication | ~10 min | |
-| 5 | Streaming Patterns | ~25 min | 3 required tasks + bonus experiments |
-| 6 | Deadlines and Error Handling | ~15 min | + optional cancellation bonus |
-| 7 | Final Chat Client | ~20 min | ties 5 and 6 together |
+| # | Exercise | Notes |
+|---|----------|-------|
+| 1 | Proto Messages | |
+| 2 | Build a Service Stub | |
+| 3 | Implement Unary `SendMessage` | |
+| 4 | Unary Client + Verify Communication | |
+| 5 | Streaming Patterns | 3 required tasks + bonus experiments |
+| 6 | Deadlines and Error Handling | + optional cancellation bonus |
+| 7 | Final Chat Client | ties 5 and 6 together |
+| 8 | A real chat — broadcasting | **bonus**: queues, threads, cleanup |
+| 9 | Metadata and interceptors | **bonus**: auth, request ids, middleware |
 
-Times are rough: about 1h45 of exercises in total, excluding the bonuses.
-
-Optional bonuses, if there is time: cancellation (in Exercise 6) and
-[evolving the contract](#bonus-evolving-the-contract-optional) (~10 min).
+Optional bonuses, if there is time: cancellation (in Exercise 6),
+[broadcasting](#exercise-8-bonus-a-real-chat--broadcasting),
+[metadata and interceptors](#exercise-9-bonus-metadata-and-interceptors),
+[grpcurl and reflection](#bonus-grpcurl-and-reflection-optional) and
+[evolving the contract](#bonus-evolving-the-contract-optional).
 
 ---
 
@@ -742,8 +745,6 @@ Neither is required to run the exercises — they only improve static typing and
 
 # Exercise 1: Proto Messages
 
-**Estimated time:** ~10 min
-
 ## Goal
 
 Define the remaining proto messages in `chat.proto`.
@@ -877,8 +878,6 @@ knowing it *is* a convention, not something the protocol enforces.
 
 # Exercise 2: Build a Service Stub 
 
-**Estimated time:** ~10 min
-
 ## Goal
 
 Add the `ChatServicer` method stubs — the Python object that will handle
@@ -981,6 +980,8 @@ from concurrent import futures
 import grpc
 from google.protobuf.timestamp_pb2 import Timestamp
 
+from grpc_reflection.v1alpha import reflection
+
 from exercises.generated import chat_pb2, chat_pb2_grpc
 
 _store: dict[str, list[chat_pb2.Message]] = {}
@@ -1018,6 +1019,16 @@ class ChatServicer(chat_pb2_grpc.ChatServiceServicer):
 def serve(port: int = 50051) -> None:
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     chat_pb2_grpc.add_ChatServiceServicer_to_server(ChatServicer(), server)
+
+    # Reflection lets grpcurl discover the service without chat.proto.
+    reflection.enable_server_reflection(
+        (
+            chat_pb2.DESCRIPTOR.services_by_name["ChatService"].full_name,
+            reflection.SERVICE_NAME,
+        ),
+        server,
+    )
+
     server.add_insecure_port(f"[::]:{port}")
     try:
         server.start()
@@ -1097,8 +1108,6 @@ There is also a `ChatService` class at the bottom using
 workshop uses the stub.
 
 # Exercise 3: Implement Unary SendMessage
-
-**Estimated time:** ~15 min
 
 ## Goal
 
@@ -1226,6 +1235,7 @@ from concurrent import futures
 import grpc
 from google.protobuf.timestamp_pb2 import Timestamp
 from grpc import StatusCode
+from grpc_reflection.v1alpha import reflection
 
 from exercises.generated import chat_pb2, chat_pb2_grpc
 
@@ -1274,6 +1284,16 @@ class ChatServicer(chat_pb2_grpc.ChatServiceServicer):
 def serve(port: int = 50051) -> None:
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     chat_pb2_grpc.add_ChatServiceServicer_to_server(ChatServicer(), server)
+
+    # Reflection lets grpcurl discover the service without chat.proto.
+    reflection.enable_server_reflection(
+        (
+            chat_pb2.DESCRIPTOR.services_by_name["ChatService"].full_name,
+            reflection.SERVICE_NAME,
+        ),
+        server,
+    )
+
     server.add_insecure_port(f"[::]:{port}")
     try:
         server.start()
@@ -1291,8 +1311,6 @@ if __name__ == "__main__":
 </details>
 
 # Exercise 4: Unary Client + Verify Communication
-
-**Estimated time:** ~10 min
 
 ## Goal
 
@@ -1395,8 +1413,6 @@ if __name__ == "__main__":
 </details>
 
 # Exercise 5: Streaming Patterns 
-
-**Estimated time:** ~25 min
 
 ## Goal
 
@@ -1754,6 +1770,7 @@ from concurrent import futures
 import grpc
 from google.protobuf.timestamp_pb2 import Timestamp
 from grpc import StatusCode
+from grpc_reflection.v1alpha import reflection
 
 from exercises.generated import chat_pb2, chat_pb2_grpc
 
@@ -1819,6 +1836,16 @@ class ChatServicer(chat_pb2_grpc.ChatServiceServicer):
 def serve(port: int = 50051) -> None:
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     chat_pb2_grpc.add_ChatServiceServicer_to_server(ChatServicer(), server)
+
+    # Reflection lets grpcurl discover the service without chat.proto.
+    reflection.enable_server_reflection(
+        (
+            chat_pb2.DESCRIPTOR.services_by_name["ChatService"].full_name,
+            reflection.SERVICE_NAME,
+        ),
+        server,
+    )
+
     server.add_insecure_port(f"[::]:{port}")
     try:
         server.start()
@@ -1832,8 +1859,6 @@ def serve(port: int = 50051) -> None:
 
 
 # Exercise 6: Deadlines and Error Handling 
-
-**Estimated time:** ~15 min
 
 ## Goal
 
@@ -2027,8 +2052,6 @@ if __name__ == "__main__":
 
 # Exercise 7: Final Chat Client in `client.py` 
 
-**Estimated time:** ~20 min
-
 ## Goal
 
 Build the final workshop app by implementing three CLI commands directly in
@@ -2152,10 +2175,18 @@ If `chat` never prints replies, verify you are iterating `stub.Chat(...)`.
 
 """CLI client for the Chat gRPC service."""
 
+import sys
+
 import grpc
 import typer
 
 from exercises.generated import chat_pb2, chat_pb2_grpc
+
+# Windows consoles default to cp1252, which cannot encode the checkmarks and
+# arrows below, so printing them raises UnicodeEncodeError. Ask for UTF-8.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8", errors="replace")
 
 app = typer.Typer(help="Chat service client")
 
@@ -2206,6 +2237,35 @@ def history(
 
 
 @app.command()
+def bulk(
+    room: str = typer.Option("general", "--room", "-r", help="Chat room ID"),
+    user: str = typer.Option("alice", "--user", "-u", help="Username"),
+    count: int = typer.Option(5, "--count", "-n", help="How many messages to send"),
+    host: str = typer.Option("localhost", hidden=True),
+    port: int = typer.Option(50051, hidden=True),
+) -> None:
+    """Send several messages in one call (client-streaming RPC)."""
+    channel, stub = _stub(host, port)
+    with channel:
+
+        def _requests():
+            for index in range(count):
+                yield chat_pb2.MessageRequest(
+                    room_id=room, user=user, content=f"bulk {index}"
+                )
+
+        try:
+            response = stub.SendBulkMessages(_requests())
+            typer.echo(
+                f"✓ Sent  sent={response.messages_sent}  "
+                f"failed={response.messages_failed}"
+            )
+        except grpc.RpcError as error:
+            typer.echo(f"✗ {error.code()}: {error.details()}", err=True)
+            raise typer.Exit(1)
+
+
+@app.command()
 def chat(
     room: str = typer.Option("general", "--room", "-r"),
     user: str = typer.Option("alice", "--user", "-u"),
@@ -2241,9 +2301,329 @@ if __name__ == "__main__":
 
 </details>
 
-# Bonus: evolving the contract *(optional)*
+# Exercise 8 (bonus): A real chat — broadcasting
 
-**Estimated time:** ~10 min
+## Goal
+
+Make `Chat` deliver each message to **everyone in the room**, not just back to
+its sender.
+
+## Why the current version isn't a chat
+
+The `Chat` from Exercise 5 echoes:
+
+```python
+def Chat(self, request_iterator, context):
+    for request in request_iterator:
+        yield _make_message(request)
+```
+
+Each call only ever writes to the stream it is reading from, so two people in
+`general` never see each other. Try it — open `poe final-chat` twice and type
+in both. Everyone is talking to themselves.
+
+## The idea
+
+Separate *receiving* from *sending*:
+
+- every connected stream gets its own **queue** (its inbox)
+- the room keeps a list of the inboxes currently subscribed to it
+- an incoming message is stored, then **put into every inbox for that room**
+- the generator yields whatever lands in its own inbox
+
+```
+alice's Chat ──reads──> [store] ──fan out──> alice's queue ──yields──> alice
+                                        └──> bob's queue   ──yields──> bob
+```
+
+## Things you have to get right
+
+**1. Reading and writing happen at the same time.** `for request in
+request_iterator` blocks until the next request arrives, so you cannot also sit
+in a loop yielding replies. The reference solution reads on a separate thread
+and lets the generator drain the queue.
+
+**2. The server is multi-threaded.** gRPC serves each call on its own thread
+from the pool, so the subscriber registry and the store need a `threading.Lock`.
+
+**3. You must clean up, and `return` is not enough.** A client that disappears
+(Ctrl-C, lost network, cancelled call) never finishes its request iterator. Use
+the hook gRPC gives you:
+
+```python
+context.add_callback(_unsubscribe)
+```
+
+It runs however the call ends. Without it, every disconnect leaves a queue
+registered and the server keeps fanning messages into a buffer nobody reads —
+a slow leak that only shows up after a while.
+
+**4. The room isn't known until the first message.** `Chat(stream)` carries no
+room in the call itself, so subscription happens when the first request arrives.
+(A more realistic API would put the room in metadata — see the metadata bonus.)
+
+## Reference implementation
+
+`workshop/exercises/08_broadcast_chat/server_broadcast.py` is a complete,
+working version. Read it
+after you have tried, or run it directly:
+
+```bash
+poe server-broadcast
+```
+
+## Demo: two terminals
+
+```bash
+# Terminal 1
+poe server-broadcast
+
+# Terminal 2
+poe final-chat --room general --user alice
+
+# Terminal 3
+poe final-chat --room general --user bob
+```
+
+Type in Alice's terminal and it appears in Bob's. Note that Bob only sees
+messages sent *after* he joined — this is a live stream, not a backlog. Call
+`poe final-history` to get what he missed.
+
+## Verify
+
+```bash
+poe test-08
+```
+
+The tests drive two real gRPC streams and check that Alice sees Bob's message,
+that messages do not leak between rooms, and that a disconnected client's queue
+is actually unregistered.
+
+## Going further
+
+- Send the room backlog when someone joins (`GetHistory` + the live stream),
+  and think about the message that arrives *between* the two.
+- Use `context.is_active()` to drop a subscriber that has stopped reading.
+- Replace the unbounded queue with `queue.Queue(maxsize=...)` and decide what a
+  slow client should do: block the publisher, or lose messages?
+
+# Exercise 9 (bonus): Metadata and interceptors
+
+## Goal
+
+Attach a token and a request id to every call without touching a single
+servicer method.
+
+## Metadata
+
+Metadata is gRPC's equivalent of HTTP headers: key/value pairs travelling with
+a call, separate from the message. Keys are lowercase; a key ending in `-bin`
+carries bytes, anything else carries text.
+
+Sending it, per call:
+
+```python
+stub.SendMessage(request, metadata=(("authorization", "Bearer abc"),))
+```
+
+Reading it on the server:
+
+```python
+def SendMessage(self, request, context):
+    metadata = dict(context.invocation_metadata())
+    token = metadata.get("authorization")
+```
+
+This is where auth tokens, request ids and tracing headers belong — not as
+fields in your messages, which are about the *domain*, not the transport.
+
+## Why interceptors
+
+Passing `metadata=` at every call site is easy to forget, and checking the
+token inside every method duplicates the check and misses methods added later.
+Interceptors wrap *all* calls in one place — gRPC's middleware.
+
+**Client side** adds the metadata:
+
+```python
+channel = grpc.intercept_channel(
+    grpc.insecure_channel("localhost:50051"), AuthAndRequestIdInterceptor()
+)
+```
+
+**Server side** enforces it, before the servicer runs:
+
+```python
+server = grpc.server(
+    futures.ThreadPoolExecutor(max_workers=10),
+    interceptors=(LoggingInterceptor(), AuthInterceptor()),
+)
+```
+
+## Three things that trip people up
+
+**1. A client interceptor is per call type.** There are four separate base
+classes: `UnaryUnaryClientInterceptor`, `UnaryStreamClientInterceptor`,
+`StreamUnaryClientInterceptor`, `StreamStreamClientInterceptor`. Implement only
+the first and your `GetHistory` quietly goes out *without* the token. The
+reference implementation inherits all four for that reason.
+
+**2. `ClientCallDetails` is read-only.** It is a namedtuple, so you copy it:
+
+```python
+metadata = list(client_call_details.metadata or ())
+metadata.append(("authorization", f"Bearer {token}"))
+return client_call_details._replace(metadata=metadata)
+```
+
+**3. A server interceptor returns a *handler*, not a response.** To reject a
+call you return a handler that aborts; to let it through you return
+`continuation(handler_call_details)`. And if you want to wrap the behaviour
+(timing, logging), you must rebuild the handler with the matching
+`grpc.*_rpc_method_handler` and keep its serializers — otherwise you break
+serialization for that method.
+
+## Run it
+
+```bash
+# Terminal 1
+poe server-intercepted
+
+# Terminal 2
+poe client-intercepted
+```
+
+Output:
+
+```text
+[with token]
+  ok: id=19df637c-… status=ok
+
+[without token]
+  rejected: UNAUTHENTICATED: Missing or invalid token
+```
+
+And on the server, one line per call — request id, method, duration:
+
+```text
+interceptors: f8c998cd-… /chat.ChatService/SendMessage 0.6ms
+interceptors: -          /chat.ChatService/SendMessage 0.1ms
+```
+
+The rejected call logs `-` because it never carried a request id: the auth
+interceptor stopped it first. Interceptor order is the order you pass them.
+
+## Verify
+
+```bash
+poe test-09
+```
+
+## Going further
+
+- Return the request id to the caller with
+  `context.set_trailing_metadata(...)` so a client can log it too.
+- Real auth uses TLS plus `grpc.access_token_call_credentials`, so the token
+  is not readable on the wire — `insecure_channel` here is for the workshop
+  only.
+- An interceptor is the natural place for retries, rate limiting and metrics.
+
+# Bonus: grpcurl and reflection *(optional)*
+
+gRPC is binary, so you cannot poke at it with `curl`. The equivalent tool is
+[grpcurl](https://github.com/fullstorydev/grpcurl) — and it only needs to know
+your schema. You can hand it `chat.proto`, or let the server describe itself.
+
+## Server reflection
+
+`serve()` already enables it:
+
+```python
+from grpc_reflection.v1alpha import reflection
+
+reflection.enable_server_reflection(
+    (
+        chat_pb2.DESCRIPTOR.services_by_name["ChatService"].full_name,
+        reflection.SERVICE_NAME,
+    ),
+    server,
+)
+```
+
+This registers an extra service whose job is answering "what do you serve, and
+what do those messages look like?". Clients then discover everything at
+runtime. You can see it working without installing anything:
+
+```bash
+poe server     # terminal 1
+```
+
+```bash
+# terminal 2 — ask the server what it serves
+uv run python -c "
+import grpc
+from grpc_reflection.v1alpha import reflection_pb2, reflection_pb2_grpc
+stub = reflection_pb2_grpc.ServerReflectionStub(
+    grpc.insecure_channel('localhost:50051')
+)
+req = reflection_pb2.ServerReflectionRequest(list_services='')
+for resp in stub.ServerReflectionInfo(iter([req])):
+    for service in resp.list_services_response.service:
+        print(service.name)
+"
+```
+
+Output:
+
+```
+chat.ChatService
+grpc.reflection.v1alpha.ServerReflection
+```
+
+## Using grpcurl
+
+`grpcurl` is a single Go binary (`brew install grpcurl`, or grab a release from
+the project page). With reflection on, no `.proto` is needed:
+
+```bash
+# What services are there?
+grpcurl -plaintext localhost:50051 list
+
+# What methods does ChatService have?
+grpcurl -plaintext localhost:50051 list chat.ChatService
+
+# What does SendMessage expect?
+grpcurl -plaintext localhost:50051 describe chat.MessageRequest
+
+# Call it — JSON in, JSON out
+grpcurl -plaintext -d '{"room_id":"general","user":"alice","content":"from grpcurl"}' \
+    localhost:50051 chat.ChatService/SendMessage
+
+# Server streaming: one response object per message
+grpcurl -plaintext -d '{"room_id":"general","limit":10}' \
+    localhost:50051 chat.ChatService/GetHistory
+```
+
+`-plaintext` is required because the workshop server has no TLS. Without
+reflection you would pass the schema yourself:
+
+```bash
+grpcurl -plaintext -import-path exercises/01_protocol_buffers -proto chat.proto \
+    localhost:50051 list
+```
+
+## Worth knowing
+
+- `grpcurl` accepts and prints **JSON**, using protobuf's canonical JSON
+  mapping. It is a convenience of the tool, not what goes over the wire — the
+  RPC itself is still binary protobuf.
+- Reflection exposes your whole API surface, so it is usually enabled in dev
+  and staging and left off (or put behind auth) in production.
+- This is also what makes GUI clients like Postman, Insomnia and
+  [grpcui](https://github.com/fullstorydev/grpcui) work against a server with
+  no schema file.
+
+# Bonus: evolving the contract *(optional)*
 
 A `.proto` file is a contract between programs you deploy at different times.
 Protobuf is built so you can extend it without a flag day — if you follow two
