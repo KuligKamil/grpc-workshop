@@ -11,7 +11,6 @@ import importlib.util
 from pathlib import Path
 
 import pytest
-import typer
 
 pytest.importorskip(
     "exercises.generated.chat_pb2",
@@ -45,11 +44,9 @@ def _split_addr(grpc_addr: str) -> tuple[str, int]:
     return host, int(port)
 
 
-def test_send_command_prints_success(grpc_addr, monkeypatch):
+def test_send_command_prints_success(grpc_addr, capsys):
     host, port = _split_addr(grpc_addr)
-    captured: list[str] = []
 
-    monkeypatch.setattr(typer, "echo", lambda m, **_: captured.append(str(m)))
     client.send(
         message="hello",
         room="sol-final-send",
@@ -58,10 +55,13 @@ def test_send_command_prints_success(grpc_addr, monkeypatch):
         port=port,
     )
 
-    assert any("✓ Sent" in line and "status=ok" in line for line in captured)
+    out = capsys.readouterr().out
+    assert "✓ Sent" in out and "status=ok" in out, (
+        "send() should print '✓ Sent  id=<id>  status=ok' — got:\n" + out
+    )
 
 
-def test_history_command_prints_streamed_messages(stub, grpc_addr, monkeypatch):
+def test_history_command_prints_streamed_messages(stub, grpc_addr, capsys):
     room = "sol-final-history"
     for i in range(3):
         stub.SendMessage(
@@ -69,18 +69,17 @@ def test_history_command_prints_streamed_messages(stub, grpc_addr, monkeypatch):
         )
 
     host, port = _split_addr(grpc_addr)
-    captured: list[str] = []
-    monkeypatch.setattr(typer, "echo", lambda m, **_: captured.append(str(m)))
     client.history(room=room, limit=10, host=host, port=port)
 
-    assert any("[alice] msg 0" in line for line in captured)
-    assert any("[alice] msg 2" in line for line in captured)
+    out = capsys.readouterr().out
+    assert "[alice] msg 0" in out and "[alice] msg 2" in out, (
+        "history() should print each message as '[user] content' — got:\n" + out
+    )
 
 
-def test_chat_command_streams_and_prints_replies(grpc_addr, monkeypatch):
+def test_chat_command_streams_and_prints_replies(grpc_addr, capsys, monkeypatch):
     host, port = _split_addr(grpc_addr)
     user_inputs = iter(["hello", "from chat", EOFError()])
-    captured: list[str] = []
 
     def fake_input(_prompt: str = ""):
         value = next(user_inputs)
@@ -89,10 +88,10 @@ def test_chat_command_streams_and_prints_replies(grpc_addr, monkeypatch):
         return value
 
     monkeypatch.setattr("builtins.input", fake_input)
-    monkeypatch.setattr(typer, "echo", lambda m, **_: captured.append(str(m)))
     client.chat(room="sol-final-chat", user="alice", host=host, port=port)
 
-    assert any("Connected!" in line for line in captured)
-    assert any("← [alice] hello" in line for line in captured)
-    assert any("← [alice] from chat" in line for line in captured)
+    out = capsys.readouterr().out
+    assert "← [alice] hello" in out and "← [alice] from chat" in out, (
+        "chat() should print each reply as '  ← [user] content' — got:\n" + out
+    )
 

@@ -33,6 +33,8 @@ class ChatServicer(chat_pb2_grpc.ChatServiceServicer):
     # `pass` for now): SendMessage, GetHistory, SendBulkMessages, Chat.
     # Hint: open exercises/generated/chat_pb2_grpc.py and find
     # ChatServiceServicer for the exact method signatures.
+    # The numbered steps under each commented-out method are for later
+    # exercises (03, 05) — ignore them for now; just add the stubs.
 
     # def SendMessage(...):
     #     # TODO Exercise 03 — implement unary RPC
