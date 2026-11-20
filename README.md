@@ -72,25 +72,23 @@ discord: kamilkulig
 
 3) Exercises
 
-| # | Exercise | Time | Notes |
-|---|----------|------|-------|
-| 1 | Proto Messages | ~10 min | |
-| 2 | Build a Service Stub | ~10 min | |
-| 3 | Implement Unary `SendMessage` | ~15 min | |
-| 4 | Unary Client + Verify Communication | ~10 min | |
-| 5 | Streaming Patterns | ~25 min | 3 required tasks + bonus experiments |
-| 6 | Deadlines and Error Handling | ~15 min | + optional cancellation bonus |
-| 7 | Final Chat Client | ~20 min | ties 5 and 6 together |
-| 8 | A real chat — broadcasting | ~25 min | **bonus**: queues, threads, cleanup |
-| 9 | Metadata and interceptors | ~20 min | **bonus**: auth, request ids, middleware |
-
-Times are rough: about 1h45 of exercises in total, excluding the bonuses.
+| # | Exercise | Notes |
+|---|----------|-------|
+| 1 | Proto Messages | |
+| 2 | Build a Service Stub | |
+| 3 | Implement Unary `SendMessage` | |
+| 4 | Unary Client + Verify Communication | |
+| 5 | Streaming Patterns | 3 required tasks + bonus experiments |
+| 6 | Deadlines and Error Handling | + optional cancellation bonus |
+| 7 | Final Chat Client | ties 5 and 6 together |
+| 8 | A real chat — broadcasting | **bonus**: queues, threads, cleanup |
+| 9 | Metadata and interceptors | **bonus**: auth, request ids, middleware |
 
 Optional bonuses, if there is time: cancellation (in Exercise 6),
-[broadcasting](#exercise-8-bonus-a-real-chat--broadcasting) (~25 min),
-[metadata and interceptors](#exercise-9-bonus-metadata-and-interceptors) (~20 min),
-[grpcurl and reflection](#bonus-grpcurl-and-reflection-optional) (~10 min) and
-[evolving the contract](#bonus-evolving-the-contract-optional) (~10 min).
+[broadcasting](#exercise-8-bonus-a-real-chat--broadcasting),
+[metadata and interceptors](#exercise-9-bonus-metadata-and-interceptors),
+[grpcurl and reflection](#bonus-grpcurl-and-reflection-optional) and
+[evolving the contract](#bonus-evolving-the-contract-optional).
 
 ---
 
@@ -747,8 +745,6 @@ Neither is required to run the exercises — they only improve static typing and
 
 # Exercise 1: Proto Messages
 
-**Estimated time:** ~10 min
-
 ## Goal
 
 Define the remaining proto messages in `chat.proto`.
@@ -881,8 +877,6 @@ message. For this workshop the `0 = all` convention is enough — but it is wort
 knowing it *is* a convention, not something the protocol enforces.
 
 # Exercise 2: Build a Service Stub 
-
-**Estimated time:** ~10 min
 
 ## Goal
 
@@ -1115,8 +1109,6 @@ workshop uses the stub.
 
 # Exercise 3: Implement Unary SendMessage
 
-**Estimated time:** ~15 min
-
 ## Goal
 
 Add real logic to `SendMessage` so the server actually stores and acknowledges
@@ -1320,8 +1312,6 @@ if __name__ == "__main__":
 
 # Exercise 4: Unary Client + Verify Communication
 
-**Estimated time:** ~10 min
-
 ## Goal
 
 Write a client that calls `SendMessage` and see both sides talk to each other.
@@ -1423,8 +1413,6 @@ if __name__ == "__main__":
 </details>
 
 # Exercise 5: Streaming Patterns 
-
-**Estimated time:** ~25 min
 
 ## Goal
 
@@ -1872,8 +1860,6 @@ def serve(port: int = 50051) -> None:
 
 # Exercise 6: Deadlines and Error Handling 
 
-**Estimated time:** ~15 min
-
 ## Goal
 
 Learn how to make gRPC clients more resilient by handling:
@@ -2065,8 +2051,6 @@ if __name__ == "__main__":
 </details>
 
 # Exercise 7: Final Chat Client in `client.py` 
-
-**Estimated time:** ~20 min
 
 ## Goal
 
@@ -2319,8 +2303,6 @@ if __name__ == "__main__":
 
 # Exercise 8 (bonus): A real chat — broadcasting
 
-**Estimated time:** ~25 min
-
 ## Goal
 
 Make `Chat` deliver each message to **everyone in the room**, not just back to
@@ -2426,8 +2408,6 @@ is actually unregistered.
   slow client should do: block the publisher, or lose messages?
 
 # Exercise 9 (bonus): Metadata and interceptors
-
-**Estimated time:** ~20 min
 
 ## Goal
 
@@ -2550,8 +2530,6 @@ poe test-09
 
 # Bonus: grpcurl and reflection *(optional)*
 
-**Estimated time:** ~10 min
-
 gRPC is binary, so you cannot poke at it with `curl`. The equivalent tool is
 [grpcurl](https://github.com/fullstorydev/grpcurl) — and it only needs to know
 your schema. You can hand it `chat.proto`, or let the server describe itself.
@@ -2646,8 +2624,6 @@ grpcurl -plaintext -import-path exercises/01_protocol_buffers -proto chat.proto 
   no schema file.
 
 # Bonus: evolving the contract *(optional)*
-
-**Estimated time:** ~10 min
 
 A `.proto` file is a contract between programs you deploy at different times.
 Protobuf is built so you can extend it without a flag day — if you follow two
