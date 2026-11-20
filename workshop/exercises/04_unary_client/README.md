@@ -1,7 +1,5 @@
 # Exercise 4: Unary Client + Verify Communication
 
-**Estimated time:** ~10 min
-
 ## Goal
 
 Write a client that calls `SendMessage` and see both sides talk to each other.
@@ -55,7 +53,6 @@ docker compose exec server uv run poe starter-04    # terminal 2
 `uv run` is required: `exec` skips the entrypoint and the venv in `/opt/venv`
 is not on `PATH`.
 
-
 Then try the failure path: change `content` in `client_starter.py` to `""`,
 run `poe starter-04` again — what error code do you get? (Exercise 3 made the
 server reject it.) Set it back to a real message afterwards.
@@ -79,7 +76,7 @@ message_id: 3f2a1c7e-…
 status:     ok
 ```
 
-If it raises `TypeError: insecure_channel() argument 1 must be str, not ellipsis`,
+If it raises `AttributeError: 'ellipsis' object has no attribute 'encode'`,
 you still have a `...` placeholder — fill in the channel address string.
 If it prints nothing and exits silently, the `except` block is swallowing the
 error — add a `print` inside the `except` so you can see what went wrong.

@@ -1,7 +1,5 @@
 # Exercise 5: Streaming Patterns 
 
-**Estimated time:** ~25 min
-
 ## Goal
 
 Complete all four communication patterns on the server by adding the three
@@ -172,6 +170,9 @@ for reply in stub.Chat(requests()):
     print(f"← [{reply.user}] {reply.content}")
 ```
 
+In `streaming_starter.py`, Phase A also asks you to number each message
+(`#1 Hi there!`, `#2 …`) — `enumerate(inputs, start=1)` gives you the index.
+
 ## Test it
 
 ```bash
@@ -204,12 +205,13 @@ docker compose exec server uv run poe starter-05    # terminal 2
 `uv run` is required: `exec` skips the entrypoint and the venv in `/opt/venv`
 is not on `PATH`.
 
-
 Open `streaming_starter.py` to write your experiments.
 
-`poe starter-05` runs each demo independently: an unfinished one prints
-`[demo_... not finished yet: ...]` and the others still run, so you can tackle
-the three tasks in any order.
+`poe starter-05` runs each demo independently, so you can tackle the three
+tasks in any order. A demo you have not touched yet just prints its header
+(e.g. `[Server streaming] GetHistory:`) and nothing under it. A half-written
+one that raises prints `[demo_... not finished yet: ...]`, and the other
+demos still run.
 
 ## Verify
 
@@ -252,9 +254,11 @@ has to `yield`. `UNIMPLEMENTED` would mean the method is missing altogether.
 Sent: 5   (or however many your generator yields)
 ```
 
-If `messages_sent` is 0, the `for request in request_iterator` loop isn't
-reached — make sure you're passing the generator object, not calling it
-(`messages()` not `messages`).
+If it fails with `UNKNOWN: Exception iterating requests!`, gRPC did not get
+something it can iterate: either you passed the function (`messages`) instead
+of calling it (`messages()`), or the generator body is still the starter's
+`pass` — a function with no `yield` returns `None`, not a generator.
+If `messages_sent` is 0, your generator runs but yields nothing.
 
 **Task 3 (Chat)** — `poe client-chat` should echo each typed line back with a
 `←` prefix. If nothing comes back, `Chat` isn't yielding — check that you

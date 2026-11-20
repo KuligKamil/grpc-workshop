@@ -29,8 +29,9 @@ def _make_message(request: chat_pb2.MessageRequest) -> chat_pb2.Message:
 
 class ChatServicer(chat_pb2_grpc.ChatServiceServicer):
     pass
-    # TODO Exercise 02 — add the four method stubs below (each returning
-    # `pass` for now): SendMessage, GetHistory, SendBulkMessages, Chat.
+    # TODO Exercise 02 — replace the `pass` above with four method stubs (each
+    # with a body of just `pass` for now): SendMessage, GetHistory,
+    # SendBulkMessages, Chat. Keep the commented hints below as a guide.
     # Hint: open exercises/generated/chat_pb2_grpc.py and find
     # ChatServiceServicer for the exact method signatures.
     # The numbered steps under each commented-out method are for later

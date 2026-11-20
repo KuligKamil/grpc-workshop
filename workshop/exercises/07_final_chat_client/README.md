@@ -1,7 +1,5 @@
 # Exercise 7: Final Chat Client in `client.py` 
 
-**Estimated time:** ~20 min
-
 ## Goal
 
 Build the final workshop app by implementing three CLI commands directly in
@@ -14,7 +12,8 @@ Build the final workshop app by implementing three CLI commands directly in
 This exercise combines:
 
 - **Exercise 05** knowledge (streaming loops + generators)
-- **Exercise 06** knowledge (status-aware error handling, clean cancellation)
+- **Exercise 06** knowledge (status-aware error handling; cancellation is
+  covered in its optional bonus)
 
 ## Context
 
@@ -78,7 +77,8 @@ Open `exercises/07_final_chat_client/client.py` and implement these command func
    - send stream to `stub.Chat(...)`
    - print incoming streamed replies
    - stop cleanly on `KeyboardInterrupt` / `EOFError`
-   - ignore/quietly handle `StatusCode.CANCELLED`
+   - ignore/quietly handle `StatusCode.CANCELLED` — the status a call ends
+     with once it is cancelled (see the cancellation bonus in Exercise 06)
 
 > **Output format:** the tests read stdout, so `print(...)` and `typer.echo(...)`
 > both work — but they look for these exact shapes:

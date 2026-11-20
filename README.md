@@ -769,14 +769,23 @@ Define these four messages (field names and types are in the comments in the fil
 ## Verify
 
 ```bash
+# From the workshop/ directory:
 poe generate-exercises
 # No errors → exercises/generated/ updated
 ```
 
+Then run just this exercise's tests:
+
+```bash
+poe test-01
+```
+
+`poe test-exercises` runs all of them.
+
 ## ✅ Micro-check
 
 After `poe generate-exercises` you should see **no errors** on the terminal and
-four new files in `exercises/generated/`:
+these four files in `exercises/generated/`:
 
 ```
 exercises/generated/chat_pb2.py
@@ -785,8 +794,20 @@ exercises/generated/chat_pb2.pyi
 exercises/generated/chat_pb2_grpc.pyi
 ```
 
-If `protoc` prints `Field number 0 is illegal`, a field tag is missing.
-If it prints `Expected field name`, a brace or semicolon is wrong.
+"No errors" only proves the file is valid syntax — the untouched `chat.proto`
+with empty messages compiles too. To check that the fields are actually there,
+run `poe test-01`.
+
+Common `protoc` errors:
+
+| `protoc` prints | What is wrong |
+|---|---|
+| `Missing field number.` | a field has no `= N` |
+| `Field numbers must be positive integers.` | a field is numbered `= 0` |
+| `Field number 1 has already been used in "Message" by field "…"` | two fields share a number |
+| `Expected ";".` | a missing semicolon at the end of a field |
+| `Expected field name.` | a type with no name, e.g. `string = 1;` |
+| `Expected top-level statement` / `Unmatched "}"` | an extra or missing brace |
 
 ## Solution
 
@@ -905,7 +926,7 @@ def Chat(self, request_iterator, context):
 ## Your task
 
 Open `exercises/server.py` and, inside the `ChatServicer` class, add these
-four methods (all return `pass` for now):
+four methods, each with a body of just `pass` for now:
 
 - `SendMessage(self, request, context)`
 - `GetHistory(self, request, context)`
@@ -927,6 +948,16 @@ poe server
 The server starts but returns gRPC errors on every call — that's expected.
 We'll add the real logic in Exercise 3.
 
+## Verify
+
+Run just this exercise's tests (regenerates the stubs first):
+
+```bash
+poe test-02
+```
+
+`poe test-exercises` runs all of them.
+
 ## ✅ Micro-check
 
 You should see exactly this line in the terminal:
@@ -935,8 +966,10 @@ You should see exactly this line in the terminal:
 gRPC server listening on :50051
 ```
 
-If the server crashes on import, a method name is probably misspelled — check
-against the signatures in the **Context** section above.
+If the server crashes on start, look at the traceback — usually a
+`SyntaxError` or `IndentationError` in `server.py`. A *misspelled* method
+name does **not** crash anything: the server starts fine and that method
+answers `UNIMPLEMENTED` (see the table below).
 Now call it (`poe client-send --room general --user alice "Hello!"`). You get:
 
 ```
@@ -1147,7 +1180,9 @@ Open `exercises/server.py` and implement `SendMessage` inside the
 1. **Validate first** — if `request.content` is empty, abort before any
    persistence happens:
     ```python
-    context.abort(StatusCode.INVALID_ARGUMENT, "Message content cannot be empty")
+    context.abort(
+        StatusCode.INVALID_ARGUMENT, "Message content cannot be empty"
+    )
     ```
 2. **Save** — call `_make_message(request)`; it stores the message and
    returns a `Message` proto with `message_id` and `timestamp` already set
@@ -1171,6 +1206,16 @@ poe server
 poe client-send --room general --user alice "Hello!"
 # ✓ Sent  id=<uuid>  status=ok
 ```
+
+## Verify
+
+Run just this exercise's tests (regenerates the stubs first):
+
+```bash
+poe test-03
+```
+
+`poe test-exercises` runs all of them.
 
 > **Restart the server after every change to `server.py`.** `poe server` loads
 > your code once at startup, so edits are not picked up by the running process:
@@ -1326,9 +1371,30 @@ poe starter-04
 #   status:     ok
 ```
 
+**Running with Docker?** `starter-04` connects to `localhost:50051`, so it has to
+run inside the server container:
+
+```bash
+docker compose up server                            # terminal 1
+docker compose exec server uv run poe starter-04    # terminal 2
+```
+
+`uv run` is required: `exec` skips the entrypoint and the venv in `/opt/venv`
+is not on `PATH`.
+
 Then try the failure path: change `content` in `client_starter.py` to `""`,
 run `poe starter-04` again — what error code do you get? (Exercise 3 made the
 server reject it.) Set it back to a real message afterwards.
+
+## Verify
+
+Run just this exercise's tests (regenerates the stubs first):
+
+```bash
+poe test-04
+```
+
+`poe test-exercises` runs all of them.
 
 ## ✅ Micro-check
 
@@ -1339,7 +1405,7 @@ message_id: 3f2a1c7e-…
 status:     ok
 ```
 
-If it raises `TypeError: insecure_channel() argument 1 must be str, not ellipsis`,
+If it raises `AttributeError: 'ellipsis' object has no attribute 'encode'`,
 you still have a `...` placeholder — fill in the channel address string.
 If it prints nothing and exits silently, the `except` block is swallowing the
 error — add a `print` inside the `except` so you can see what went wrong.
@@ -1486,6 +1552,10 @@ for message in stub.GetHistory(
     print(f"[{message.user}] {message.content}")
 ```
 
+> Remember the proto3 default: `limit` arrives as `0` when the client does not
+> set it, which is why `0` means "all" here. See
+> [proto3 default values](#proto3-default-values).
+
 ### Task 2 — Client streaming: `SendBulkMessages`
 
 ```python
@@ -1552,6 +1622,9 @@ for reply in stub.Chat(requests()):
     print(f"← [{reply.user}] {reply.content}")
 ```
 
+In `streaming_starter.py`, Phase A also asks you to number each message
+(`#1 Hi there!`, `#2 …`) — `enumerate(inputs, start=1)` gives you the index.
+
 ## Test it
 
 ```bash
@@ -1573,11 +1646,34 @@ poe client-history --room general --limit 10
 poe client-chat --room general --user alice
 ```
 
+**Running with Docker?** `starter-05` connects to `localhost:50051`, so it has to
+run inside the server container:
+
+```bash
+docker compose up server                            # terminal 1
+docker compose exec server uv run poe starter-05    # terminal 2
+```
+
+`uv run` is required: `exec` skips the entrypoint and the venv in `/opt/venv`
+is not on `PATH`.
+
 Open `streaming_starter.py` to write your experiments.
 
-`poe starter-05` runs each demo independently: an unfinished one prints
-`[demo_... not finished yet: ...]` and the others still run, so you can tackle
-the three tasks in any order.
+`poe starter-05` runs each demo independently, so you can tackle the three
+tasks in any order. A demo you have not touched yet just prints its header
+(e.g. `[Server streaming] GetHistory:`) and nothing under it. A half-written
+one that raises prints `[demo_... not finished yet: ...]`, and the other
+demos still run.
+
+## Verify
+
+Run just this exercise's tests (regenerates the stubs first):
+
+```bash
+poe test-05
+```
+
+`poe test-exercises` runs all of them.
 
 > **Restart the server after every change to `server.py`.** `poe server` loads
 > your code once at startup, so edits are not picked up by the running process:
@@ -1610,9 +1706,11 @@ has to `yield`. `UNIMPLEMENTED` would mean the method is missing altogether.
 Sent: 5   (or however many your generator yields)
 ```
 
-If `messages_sent` is 0, the `for request in request_iterator` loop isn't
-reached — make sure you're passing the generator object, not calling it
-(`messages()` not `messages`).
+If it fails with `UNKNOWN: Exception iterating requests!`, gRPC did not get
+something it can iterate: either you passed the function (`messages`) instead
+of calling it (`messages()`), or the generator body is still the starter's
+`pass` — a function with no `yield` returns `None`, not a generator.
+If `messages_sent` is 0, your generator runs but yields nothing.
 
 **Task 3 (Chat)** — `poe client-chat` should echo each typed line back with a
 `←` prefix. If nothing comes back, `Chat` isn't yielding — check that you
@@ -1844,9 +1942,9 @@ sequenceDiagram
     participant S as ChatServicer
 
     alt Deadline too short
-        C->>S: SendMessage(..., timeout=0.2)
-        Note right of C: server not reachable with wait_for_ready
-        S-->>C: DEADLINE_EXCEEDED
+        C-xS: SendMessage(..., timeout=0.2, wait_for_ready=True)
+        Note over C,S: nothing listens on UNREACHABLE_SERVER — the client keeps waiting
+        C->>C: 0.2 s elapsed → DEADLINE_EXCEEDED (raised client-side)
     else Invalid input
         C->>S: SendMessage(content="")
         S-->>C: INVALID_ARGUMENT
@@ -1887,14 +1985,42 @@ poe server
 poe starter-06
 ```
 
+**Running with Docker?** `starter-06` connects to `localhost:50051`, so it has to
+run inside the server container:
+
+```bash
+docker compose up server                            # terminal 1
+docker compose exec server uv run poe starter-06    # terminal 2
+```
+
+`uv run` is required: `exec` skips the entrypoint and the venv in `/opt/venv`
+is not on `PATH`.
+
+## Verify
+
+Run just this exercise's tests (regenerates the stubs first):
+
+```bash
+poe test-06
+```
+
+`poe test-exercises` runs all of them.
+
 ## ✅ Micro-check
 
 You should see output similar to:
 
 ```text
-[Deadline] code=DEADLINE_EXCEEDED
-[Error] code=INVALID_ARGUMENT details=Message content cannot be empty
+[Deadline]
+code=StatusCode.DEADLINE_EXCEEDED
+
+[Error]
+code=StatusCode.INVALID_ARGUMENT details=Message content cannot be empty
 ```
+
+`error.code()` is a `grpc.StatusCode` enum, so it prints with the
+`StatusCode.` prefix; use `error.code().name` if you want just
+`DEADLINE_EXCEEDED`.
 
 If deadline shows `UNAVAILABLE`, check that your call uses `wait_for_ready=True`.
 
@@ -2025,7 +2151,8 @@ Build the final workshop app by implementing three CLI commands directly in
 This exercise combines:
 
 - **Exercise 05** knowledge (streaming loops + generators)
-- **Exercise 06** knowledge (status-aware error handling, clean cancellation)
+- **Exercise 06** knowledge (status-aware error handling; cancellation is
+  covered in its optional bonus)
 
 ## Context
 
@@ -2089,7 +2216,8 @@ Open `exercises/07_final_chat_client/client.py` and implement these command func
    - send stream to `stub.Chat(...)`
    - print incoming streamed replies
    - stop cleanly on `KeyboardInterrupt` / `EOFError`
-   - ignore/quietly handle `StatusCode.CANCELLED`
+   - ignore/quietly handle `StatusCode.CANCELLED` — the status a call ends
+     with once it is cancelled (see the cancellation bonus in Exercise 06)
 
 > **Output format:** the tests read stdout, so `print(...)` and `typer.echo(...)`
 > both work — but they look for these exact shapes:
@@ -2121,6 +2249,16 @@ poe final-chat --room general --user alice
 > pointed at `exercises/client.py`, the reference CLI you used to smoke-test the
 > server in Exercises 3–5. The `final-*` tasks run **your** client, so you can
 > compare the two side by side.
+
+## Verify
+
+Run just this exercise's tests (regenerates the stubs first):
+
+```bash
+poe test-07
+```
+
+`poe test-exercises` runs all of them.
 
 ## ✅ Micro-check
 

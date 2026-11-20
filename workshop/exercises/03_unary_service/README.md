@@ -1,7 +1,5 @@
 # Exercise 3: Implement Unary SendMessage
 
-**Estimated time:** ~15 min
-
 ## Goal
 
 Add real logic to `SendMessage` so the server actually stores and acknowledges
@@ -57,7 +55,9 @@ Open `exercises/server.py` and implement `SendMessage` inside the
 1. **Validate first** — if `request.content` is empty, abort before any
    persistence happens:
     ```python
-    context.abort(StatusCode.INVALID_ARGUMENT, "Message content cannot be empty")
+    context.abort(
+        StatusCode.INVALID_ARGUMENT, "Message content cannot be empty"
+    )
     ```
 2. **Save** — call `_make_message(request)`; it stores the message and
    returns a `Message` proto with `message_id` and `timestamp` already set
