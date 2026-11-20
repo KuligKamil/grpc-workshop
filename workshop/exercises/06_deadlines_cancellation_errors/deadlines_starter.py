@@ -22,7 +22,7 @@ def demo_deadline_exceeded() -> None:
     1. Open channel to UNREACHABLE_SERVER
     2. Create ChatServiceStub
     3. Call SendMessage with timeout=0.2 and wait_for_ready=True
-    4. Catch grpc.RpcError and print code/details
+    4. Catch grpc.RpcError and print error.code()
     """
     print("\n[Deadline]")
     # TODO

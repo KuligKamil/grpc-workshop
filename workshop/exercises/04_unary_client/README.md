@@ -79,7 +79,7 @@ message_id: 3f2a1c7e-…
 status:     ok
 ```
 
-If it raises `TypeError: insecure_channel() argument 1 must be str, not ellipsis`,
+If it raises `AttributeError: 'ellipsis' object has no attribute 'encode'`,
 you still have a `...` placeholder — fill in the channel address string.
 If it prints nothing and exits silently, the `except` block is swallowing the
 error — add a `print` inside the `except` so you can see what went wrong.

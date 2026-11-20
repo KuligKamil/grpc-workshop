@@ -47,7 +47,7 @@ poe test-01
 ## ✅ Micro-check
 
 After `poe generate-exercises` you should see **no errors** on the terminal and
-four new files in `exercises/generated/`:
+these four files in `exercises/generated/`:
 
 ```
 exercises/generated/chat_pb2.py
@@ -56,8 +56,20 @@ exercises/generated/chat_pb2.pyi
 exercises/generated/chat_pb2_grpc.pyi
 ```
 
-If `protoc` prints `Field number 0 is illegal`, a field tag is missing.
-If it prints `Expected field name`, a brace or semicolon is wrong.
+"No errors" only proves the file is valid syntax — the untouched `chat.proto`
+with empty messages compiles too. To check that the fields are actually there,
+run `poe test-01`.
+
+Common `protoc` errors:
+
+| `protoc` prints | What is wrong |
+|---|---|
+| `Missing field number.` | a field has no `= N` |
+| `Field numbers must be positive integers.` | a field is numbered `= 0` |
+| `Field number 1 has already been used in "Message" by field "…"` | two fields share a number |
+| `Expected ";".` | a missing semicolon at the end of a field |
+| `Expected field name.` | a type with no name, e.g. `string = 1;` |
+| `Expected top-level statement` / `Unmatched "}"` | an extra or missing brace |
 
 ## proto3 default values
 

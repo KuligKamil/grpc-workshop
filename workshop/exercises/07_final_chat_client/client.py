@@ -22,8 +22,8 @@ def send(
 ) -> None:
     """Exercise 07 — TODO: send a single message (unary RPC)."""
     # TODO:
-    # 1) open insecure channel
-    # 2) create stub
+    # 1) open the channel and create the stub: channel, stub = _stub(host, port)
+    #    (use `with channel:` so it is closed afterwards)
     # 3) call SendMessage with MessageRequest(room_id, user, content)
     # 4) print response.message_id and response.status
     # 5) handle grpc.RpcError with code/details
@@ -39,8 +39,8 @@ def history(
 ) -> None:
     """Exercise 07 — TODO: fetch message history (server-streaming RPC)."""
     # TODO:
-    # 1) open insecure channel
-    # 2) create stub
+    # 1) open the channel and create the stub: channel, stub = _stub(host, port)
+    #    (use `with channel:` so it is closed afterwards)
     # 3) call GetHistory with HistoryRequest(room_id, limit)
     # 4) iterate stream and print each message
     # 5) handle grpc.RpcError with code/details
@@ -58,7 +58,7 @@ def chat(
     # TODO:
     # 1) define a request generator reading input lines
     # 2) yield MessageRequest(room_id, user, content)
-    # 3) open insecure channel and create stub
+    # 3) open the channel and create the stub with _stub(host, port)
     # 4) iterate stub.Chat(generator) and print replies
     # 5) handle KeyboardInterrupt/EOFError and grpc CANCELLED cleanly
     raise NotImplementedError("Exercise 07: implement chat()")

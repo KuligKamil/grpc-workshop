@@ -1,4 +1,4 @@
-"""Exercise 5 — experiment with all four gRPC streaming patterns.
+"""Exercise 5 — experiment with all four gRPC communication patterns.
 
 Run your server first:
     poe server

@@ -25,9 +25,9 @@ sequenceDiagram
     participant S as ChatServicer
 
     alt Deadline too short
-        C->>S: SendMessage(..., timeout=0.2)
-        Note right of C: server not reachable with wait_for_ready
-        S-->>C: DEADLINE_EXCEEDED
+        C-xS: SendMessage(..., timeout=0.2, wait_for_ready=True)
+        Note over C,S: nothing listens on UNREACHABLE_SERVER — the client keeps waiting
+        C->>C: 0.2 s elapsed → DEADLINE_EXCEEDED (raised client-side)
     else Invalid input
         C->>S: SendMessage(content="")
         S-->>C: INVALID_ARGUMENT
@@ -128,9 +128,16 @@ poe test-06
 You should see output similar to:
 
 ```text
-[Deadline] code=DEADLINE_EXCEEDED
-[Error] code=INVALID_ARGUMENT details=Message content cannot be empty
+[Deadline]
+code=StatusCode.DEADLINE_EXCEEDED
+
+[Error]
+code=StatusCode.INVALID_ARGUMENT details=Message content cannot be empty
 ```
+
+`error.code()` is a `grpc.StatusCode` enum, so it prints with the
+`StatusCode.` prefix; use `error.code().name` if you want just
+`DEADLINE_EXCEEDED`.
 
 If deadline shows `UNAVAILABLE`, check that your call uses `wait_for_ready=True`.
 

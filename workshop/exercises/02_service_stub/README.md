@@ -34,7 +34,7 @@ def Chat(self, request_iterator, context):
 ## Your task
 
 Open `exercises/server.py` and, inside the `ChatServicer` class, add these
-four methods (all return `pass` for now):
+four methods, each with a body of just `pass` for now:
 
 - `SendMessage(self, request, context)`
 - `GetHistory(self, request, context)`
@@ -74,8 +74,10 @@ You should see exactly this line in the terminal:
 gRPC server listening on :50051
 ```
 
-If the server crashes on import, a method name is probably misspelled — check
-against the signatures in the **Context** section above.
+If the server crashes on start, look at the traceback — usually a
+`SyntaxError` or `IndentationError` in `server.py`. A *misspelled* method
+name does **not** crash anything: the server starts fine and that method
+answers `UNIMPLEMENTED` (see the table below).
 Now call it (`poe client-send --room general --user alice "Hello!"`). You get:
 
 ```
